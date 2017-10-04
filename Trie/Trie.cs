@@ -68,7 +68,7 @@ namespace Trie
 
         public int Size()
         {
-            return this._root == null ? 0 : this._root.SubTreeSize;
+            return this._root?.SubTreeSize ?? 0;
         }
 
         private Vertex TraverseWord(string element, bool addIfNotExists)
@@ -87,9 +87,8 @@ namespace Trie
 
             Vertex current = this._root;
 
-            for (int i = 0; i < element.Length; ++i)
+            foreach (char c in element)
             {
-                char c = element[i];
                 if (!current.ContainsNext(c))
                 {
                     if (addIfNotExists)
@@ -111,15 +110,15 @@ namespace Trie
         private void RemoveIfEmpty(Vertex current, char stepChar)
         {
             --current.SubTreeSize;
-            if (current.SubTreeSize == 0 && current.Parent != null)
+            if (current.SubTreeSize == 0)
             {
-                current.Parent.SetNext(stepChar, null);
+                current.Parent?.SetNext(stepChar, null);
             }
         }
 
         private class Vertex
         {
-            private IDictionary<char, Vertex> _next;
+            private readonly IDictionary<char, Vertex> _next;
 
             public Vertex(Vertex parent)
             {
@@ -133,7 +132,7 @@ namespace Trie
 
             public int SubTreeSize { get; set; }
 
-            public Vertex Parent { get; set; }
+            public Vertex Parent { get; }
 
             public bool ContainsNext(char c)
             {
