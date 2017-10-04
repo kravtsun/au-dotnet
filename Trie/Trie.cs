@@ -1,17 +1,14 @@
-﻿// <copyright file="Trie.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
+﻿// <copyright file="Trie.cs" company="SPbAU">
+// Copyright (c) SPbAU. All rights reserved.
 // </copyright>
 
 namespace Trie
 {
+    using System.Collections.Generic;
+
     public class Trie : ITrie
     {
-        private Vertex root;
-
-        public Trie()
-        {
-            this.root = null;
-        }
+        private Vertex _root;
 
         public bool Add(string element)
         {
@@ -42,7 +39,7 @@ namespace Trie
         public int HowManyStartsWithPrefix(string prefix)
         {
             Vertex current = this.TraverseWord(prefix, false);
-            return current == null ? 0 : current.SubTreeSize;
+            return current?.SubTreeSize ?? 0;
         }
 
         public bool Remove(string element)
@@ -60,10 +57,10 @@ namespace Trie
                 current = current.Parent;
             }
 
-            this.root.SubTreeSize--;
-            if (this.root.SubTreeSize == 0)
+            this._root.SubTreeSize--;
+            if (this._root.SubTreeSize == 0)
             {
-                this.root = null;
+                this._root = null;
             }
 
             return true;
@@ -71,16 +68,16 @@ namespace Trie
 
         public int Size()
         {
-            return this.root == null ? 0 : this.root.SubTreeSize;
+            return this._root == null ? 0 : this._root.SubTreeSize;
         }
 
         private Vertex TraverseWord(string element, bool addIfNotExists)
         {
-            if (this.root == null)
+            if (this._root == null)
             {
                 if (addIfNotExists)
                 {
-                    this.root = new Vertex(null); // root only.
+                    this._root = new Vertex(null); // root only.
                 }
                 else
                 {
@@ -88,12 +85,12 @@ namespace Trie
                 }
             }
 
-            Vertex current = this.root;
+            Vertex current = this._root;
 
             for (int i = 0; i < element.Length; ++i)
             {
                 char c = element[i];
-                if (current.GetNext(c) == null)
+                if (!current.ContainsNext(c))
                 {
                     if (addIfNotExists)
                     {
@@ -113,7 +110,7 @@ namespace Trie
 
         private void RemoveIfEmpty(Vertex current, char stepChar)
         {
-            current.SubTreeSize--;
+            --current.SubTreeSize;
             if (current.SubTreeSize == 0 && current.Parent != null)
             {
                 current.Parent.SetNext(stepChar, null);
@@ -122,13 +119,12 @@ namespace Trie
 
         private class Vertex
         {
-            private const int CHARPOWER = 2 * 256;
-            private Vertex[] next = null;
+            private IDictionary<char, Vertex> _next;
 
             public Vertex(Vertex parent)
             {
                 this.IsTerminal = false;
-                this.next = new Vertex[CHARPOWER];
+                this._next = new Dictionary<char, Vertex>();
                 this.Parent = parent;
                 this.SubTreeSize = 0;
             }
@@ -139,14 +135,19 @@ namespace Trie
 
             public Vertex Parent { get; set; }
 
+            public bool ContainsNext(char c)
+            {
+                return this._next.ContainsKey(c);
+            }
+
             public Vertex GetNext(char c)
             {
-                return this.next[c];
+                return this._next[c];
             }
 
             public void SetNext(char c, Vertex newVertex)
             {
-                this.next[c] = newVertex;
+                this._next[c] = newVertex;
             }
         }
     }

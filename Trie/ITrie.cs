@@ -1,5 +1,5 @@
-﻿// <copyright file="ITrie.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
+﻿// <copyright file="ITrie.cs" company="SPbAU">
+// Copyright (c) SPbAU. All rights reserved.
 // </copyright>
 
 namespace Trie
