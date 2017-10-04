@@ -91,14 +91,7 @@ namespace Trie
             {
                 if (!current.ContainsNext(c))
                 {
-                    if (addIfNotExists)
-                    {
-                        current.SetNext(c, new Vertex(current));
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    current.SetNext(c, new Vertex(current));
                 }
 
                 current = current.GetNext(c);
@@ -118,14 +111,12 @@ namespace Trie
 
         private class Vertex
         {
-            private readonly IDictionary<char, Vertex> _next;
-
             public Vertex(Vertex parent)
             {
                 this.IsTerminal = false;
-                this._next = new Dictionary<char, Vertex>();
-                this.Parent = parent;
                 this.SubTreeSize = 0;
+                this.Parent = parent;
+                this.Next = new Dictionary<char, Vertex>();
             }
 
             public bool IsTerminal { get; set; }
@@ -134,19 +125,21 @@ namespace Trie
 
             public Vertex Parent { get; }
 
+            private IDictionary<char, Vertex> Next { get; }
+
             public bool ContainsNext(char c)
             {
-                return this._next.ContainsKey(c);
+                return this.Next.ContainsKey(c);
             }
 
             public Vertex GetNext(char c)
             {
-                return this._next[c];
+                return this.Next[c];
             }
 
             public void SetNext(char c, Vertex newVertex)
             {
-                this._next[c] = newVertex;
+                this.Next[c] = newVertex;
             }
         }
     }
