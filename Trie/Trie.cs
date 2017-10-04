@@ -22,7 +22,7 @@ namespace Trie
                 current.IsTerminal = true;
                 while (current != null)
                 {
-                    current.SubTreeSize++;
+                    ++current.SubTreeSize;
                     current = current.Parent;
                 }
 
@@ -57,7 +57,7 @@ namespace Trie
                 current = current.Parent;
             }
 
-            this._root.SubTreeSize--;
+            --this._root.SubTreeSize;
             if (this._root.SubTreeSize == 0)
             {
                 this._root = null;
