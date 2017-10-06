@@ -6,17 +6,15 @@ namespace TestedAssembly
 {
     public class TestedClass1
     {
-        // TODO convert properties into fields as it generates "Auto-property accessor never used" warning.
-
         public int TestMethodResult { get; } = 42;
 
-        private bool IsFirstSetUpRun { get; set; }
+        public bool IsFirstSetUpRun { get; set; }
 
-        private bool IsSecondSetUpRun { get; set; }
+        public bool IsSecondSetUpRun { get; set; }
 
-        private bool IsFirstTearDownRun { get; set; }
+        public bool IsFirstTearDownRun { get; set; }
 
-        private bool IsIgnoredRun { get; set; }
+        public bool IsIgnoredRun { get; set; }
 
         public TestedClass1()
         {
@@ -47,18 +45,10 @@ namespace TestedAssembly
             IsFirstTearDownRun = true;
         }
 
-        // Successful tests.
-
         [Test(Expected = typeof(Exception))]
-        public void ExpectedExceptionTest()
+        public void ExceptionTest()
         {
-            throw new Exception("ExpectedExceptionTest");
-        }
-
-        [Test(Expected = typeof(AccessViolationException))]
-        public void AccessViolationExceptionTest()
-        {
-            throw new AccessViolationException("AccessViolationExceptionTest");
+            throw new Exception("ExceptionTest");
         }
 
         [Test(Expected = typeof(NullReferenceException))]
@@ -68,33 +58,23 @@ namespace TestedAssembly
             throw null;
         }
 
-        // Failing tests.
         [Test]
         public void ExceptionFailTest()
         {
             throw new Exception("ExceptionFailTest");
         }
 
-        [Test]
-        public void AccessViolationExceptionFailTest()
-        {
-            throw new AccessViolationException("AccessViolationExceptionFailTest");
-        }
-
-        [Test]
-        public void FastFailTest()
-        {
-            Environment.FailFast("FastFailTest");
-        }
-
+        // TODO make fail.
         [Test]
         public void AssertFailTest()
         {
-            Debug.Assert(false);
+            Debug.Assert(false, "FAIL");
         }
 
+        // TODO Environment.FailFast and AccessViolation (expected and non-expected).
+
         // Ignored tests.
-        [Test]
+        [Test(IgnoreWithCause = "Just ignored")]
         public void IgnoreTest()
         {
             IsIgnoredRun = false;

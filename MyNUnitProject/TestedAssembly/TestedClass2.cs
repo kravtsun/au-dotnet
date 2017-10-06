@@ -5,7 +5,7 @@ namespace TestedAssembly
 {
     public class TestedClass2
     {
-        private double MustBePi { get; set; } = 2.67;
+        public double MustBePi { get; set; } = 2.67;
 
         [Test]
         public void SimpleTest()

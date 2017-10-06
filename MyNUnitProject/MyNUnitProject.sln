@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyNUnit", "MyNUnit\MyNUnit.csproj", "{0FD152FA-FC44-4DF1-915A-C51F2D3BF090}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0CB2D088-4CE1-4740-ADD9-7F3B94955AD8} = {0CB2D088-4CE1-4740-ADD9-7F3B94955AD8}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestedAssembly", "TestedAssembly\TestedAssembly.csproj", "{0CB2D088-4CE1-4740-ADD9-7F3B94955AD8}"
 EndProject
