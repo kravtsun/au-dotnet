@@ -37,12 +37,15 @@ namespace MyNUnit
         }
 
         [Serializable]
-        public class DebugAssertException : Exception{
-            public DebugAssertException() { }
+        private class DebugAssertException : Exception{
             public DebugAssertException(string message)
-                : base(message) { }
-            public DebugAssertException(string message, Exception inner):base(message, inner) { }
-            protected DebugAssertException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context):base(info, context) { }
+                : base(message)
+            {}
+
+            protected DebugAssertException(System.Runtime.Serialization.SerializationInfo info,
+                System.Runtime.Serialization.StreamingContext context)
+                : base(info, context)
+            {}
         }
 
         public AssemblyTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
@@ -62,25 +65,9 @@ namespace MyNUnit
             var publicTypes = assembly.GetExportedTypes();
             foreach (var type in publicTypes)
             {
-                var startMethods = GetMethodsWithAttribute(type, typeof(BeforeClassAttribute));
-                var finishMethods = GetMethodsWithAttribute(type, typeof(AfterClassAttribute));
                 var testMethods = GetMethodsWithAttribute(type, typeof(TestAttribute));
-                Action<object> startAction = invoker =>
-                {
-                    foreach (var startMethod in startMethods)
-                    {
-                        startMethod.Invoke(invoker, null);
-                    }
-                };
-
-                Action<object> finishAction = invoker =>
-                {
-                    foreach (var finishMethod in finishMethods)
-                    {
-                        finishMethod.Invoke(invoker, null);
-                    }
-                };
-
+                var startAction = StartActionForType(type);
+                var finishAction = FinishActionForType(type);
                 MethodTester methodTester = new MethodTester(startAction, finishAction);
 
                 bool areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
@@ -139,8 +126,32 @@ namespace MyNUnit
             }
         }
 
+        internal static Action<object> StartActionForType(Type type)
+        {
+            var startMethods = GetMethodsWithAttribute(type, typeof(BeforeClassAttribute));
+            return invoker =>
+            {
+                foreach (var startMethod in startMethods)
+                {
+                    startMethod.Invoke(invoker, null);
+                }
+            };
+        }
+
+        internal static Action<object> FinishActionForType(Type type)
+        {
+            var finishMethods = GetMethodsWithAttribute(type, typeof(AfterClassAttribute));
+            return invoker =>
+            {
+                foreach (var finishMethod in finishMethods)
+                {
+                    finishMethod.Invoke(invoker, null);
+                }
+            };
+        }
+
         // Check if testMethod is skippable and return reason message.
-        private string CheckIfSkippableTest(object invoker, MethodInfo testMethod)
+        private string CheckIfSkippableTest(object invoker, MethodBase testMethod)
         {
             if (invoker == null && !testMethod.IsStatic)
             {

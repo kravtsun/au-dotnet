@@ -14,7 +14,7 @@ namespace TestedAssembly
 
         public bool IsFirstTearDownRun { get; set; }
 
-        public bool IsIgnoredRun { get; set; }
+        public static bool IsIgnoredRun { get; set; }
 
         public TestedClass1()
         {
@@ -64,16 +64,12 @@ namespace TestedAssembly
             throw new Exception("ExceptionFailTest");
         }
 
-        // TODO make fail.
         [Test]
         public void AssertFailTest()
         {
             Debug.Assert(false, "FAIL");
         }
 
-        // TODO Environment.FailFast and AccessViolation (expected and non-expected).
-
-        // Ignored tests.
         [Test(IgnoreWithCause = "Just ignored")]
         public void IgnoreTest()
         {
@@ -85,7 +81,7 @@ namespace TestedAssembly
             IsFirstSetUpRun = false;
             IsSecondSetUpRun = false;
             IsFirstTearDownRun = false;
-            IsIgnoredRun = true;
+            IsIgnoredRun = false;
         }
     }
 }

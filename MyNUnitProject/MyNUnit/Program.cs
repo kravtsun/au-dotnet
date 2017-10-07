@@ -7,9 +7,9 @@ using NLog;
 
 namespace MyNUnit
 {
-    class Program
+    public class Program
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private static readonly Func<MethodInfo, string> PrettyMethodName = method => $"{method.ReflectedType?.Name}.{method.Name}";
 
@@ -33,7 +33,7 @@ namespace MyNUnit
             Logger.Info($"SKIPPED: {methodName}");
         };
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (args.Length != 1)
             {
@@ -45,21 +45,19 @@ namespace MyNUnit
 
             var assemblyPaths = GetAssemblyLikePaths(assemblyDir);
 
+            IAssemblyTester assemblyTester = new AssemblyTester(SuccessAction, FailAction, SkipAction);
             foreach (var assemblyPath in assemblyPaths)
             {
                 Logger.Debug($"assembly path: {assemblyPath}");
 
                 var assembly = LoadAssembly(assemblyPath);
 
-                IAssemblyTester assemblyTester = new AssemblyTester(SuccessAction, FailAction, SkipAction);
                 assemblyTester.TestAssembly(assembly);
             }
         }
 
-        // TODO Assembly loader class.
         private static Assembly LoadAssembly(string assemblyPath)
         {
-            // TODO Create a separate domain for each consequent assembly being tested.
             var currentDomain = AppDomain.CurrentDomain;
 
             AssemblyName assemblyName = null;

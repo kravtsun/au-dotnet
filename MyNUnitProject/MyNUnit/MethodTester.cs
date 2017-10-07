@@ -9,16 +9,16 @@ namespace MyNUnit
         private readonly Action<object> _setUp;
         private readonly Action<object> _tearDown;
 
-        public MethodTester(Action<object> setUp, Action<object> tearDown)
+        internal MethodTester(Action<object> setUp, Action<object> tearDown)
         {
             _setUp = setUp;
             _tearDown = tearDown;
         }
 
-        public object Invoker { get; set; }
+        internal object Invoker { get; set; }
 
         // returns error message or null in case of success.
-        public string TestMethod(MethodInfo method)
+        internal string TestMethod(MethodInfo method)
         {
             var testAttribute = method.GetCustomAttribute(typeof(TestAttribute)) as TestAttribute;
             var expectedExceptionType = testAttribute?.Expected;
