@@ -26,8 +26,8 @@ namespace MyNUnitTest
             _testedClass1Info = _testedAssembly.GetType("TestedAssembly.TestedClass1").GetTypeInfo();
             _invoker = (TestedClass1) _testedClass1Info.GetConstructor(Type.EmptyTypes)?.Invoke(null);
             Assert.IsNotNull(_invoker);
-            var startAction = AssemblyTester.StartActionForType(_testedClass1Info.AsType());
-            var finishAction = AssemblyTester.FinishActionForType(_testedClass1Info.AsType());
+            var startAction = TypeTester.StartActionForType(_testedClass1Info.AsType());
+            var finishAction = TypeTester.FinishActionForType(_testedClass1Info.AsType());
             _methodTester = new MethodTester(startAction, finishAction) {Invoker = _invoker};
         }
 

@@ -5,7 +5,7 @@ using MyNUnitFramework.Attribute;
 namespace MyNUnitTest
 {
     [TestClass()]
-    public class AssemblyTesterTests
+    public class TypeTesterTests
     {
         [TestInitialize]
         public void TestClassInitialize()
@@ -16,7 +16,7 @@ namespace MyNUnitTest
         [TestMethod()]
         public void StartActionForTypeTest()
         {
-            var startAction = AssemblyTester.StartActionForType(typeof(TestClass));
+            var startAction = TypeTester.StartActionForType(typeof(TestClass));
             Assert.AreEqual(0, TestClass.Field);
             startAction(null);
             Assert.AreEqual(3, TestClass.Field);
@@ -27,7 +27,7 @@ namespace MyNUnitTest
         [TestMethod()]
         public void FinishActionForTypeTest()
         {
-            var finishAction = AssemblyTester.FinishActionForType(typeof(TestClass));
+            var finishAction = TypeTester.FinishActionForType(typeof(TestClass));
             Assert.AreEqual(0, TestClass.Field);
             finishAction(null);
             Assert.AreEqual(-3, TestClass.Field);

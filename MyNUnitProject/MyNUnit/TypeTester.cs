@@ -9,13 +9,9 @@ using MethodResultCallback = System.Action<System.Reflection.MethodInfo, string>
 
 namespace MyNUnit
 {
-    interface IAssemblyTester
+    internal class TypeTester
     {
-        void TestAssembly(Assembly assembly);
-    }
-
-    internal class AssemblyTester : IAssemblyTester
-    {
+        internal static string TimeSplitter { get; } = "### time: ";
         private readonly MethodResultCallback _successAction;
         private readonly MethodResultCallback _failAction;
         private readonly MethodResultCallback _skipAction;
@@ -37,93 +33,89 @@ namespace MyNUnit
         }
 
         [Serializable]
-        private class DebugAssertException : Exception{
+        private class DebugAssertException : Exception
+        {
             public DebugAssertException(string message)
                 : base(message)
-            {}
+            { }
 
             protected DebugAssertException(System.Runtime.Serialization.SerializationInfo info,
                 System.Runtime.Serialization.StreamingContext context)
                 : base(info, context)
-            {}
+            { }
         }
 
-        public AssemblyTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
+        public TypeTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
         {
             _successAction = successAction;
             _failAction = failAction;
             _skipAction = skipAction;
         }
 
-        public void TestAssembly(Assembly assembly)
+        public void TestType(Type type)
         {
-            if (assembly == null)
+            var debugAssertListener = new MyTraceListener(msg =>
             {
-                return;
-            }
+                throw new DebugAssertException($"Debug.Assert: {msg}");
+            });
+            Debug.Listeners.Clear();
+            Debug.Listeners.Add(debugAssertListener);
 
-            var publicTypes = assembly.GetExportedTypes();
-            foreach (var type in publicTypes)
+            var testMethods = GetMethodsWithAttribute(type, typeof(TestAttribute));
+            var startAction = StartActionForType(type);
+            var finishAction = FinishActionForType(type);
+            var methodTester = new MethodTester(startAction, finishAction);
+
+            bool areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
+
+            foreach (var testMethod in testMethods)
             {
-                var testMethods = GetMethodsWithAttribute(type, typeof(TestAttribute));
-                var startAction = StartActionForType(type);
-                var finishAction = FinishActionForType(type);
-                MethodTester methodTester = new MethodTester(startAction, finishAction);
+                object invoker = null;
 
-                bool areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
-
-                foreach (var testMethod in testMethods)
+                if (!areAllTestMethodsStatic)
                 {
-                    TraceListener debugAssertListener = new MyTraceListener(msg =>
+                    try
                     {
-                        throw new DebugAssertException($"Debug.Assert failed: {msg}");
-                    });
-                    Debug.Listeners.Clear();
-                    Debug.Listeners.Add(debugAssertListener);
-
-                    object invoker = null;
-
-                    if (!areAllTestMethodsStatic)
-                    {
-                        try
-                        {
-                            var ctr = type.GetConstructor(Type.EmptyTypes);
-                            if (ctr == null)
-                            {
-                                _failAction(null,
-                                    $"Type {type} has to have default constructor as there are non-static test methods.");
-                               continue;
-                            }
-                            invoker = ctr.Invoke(null);
-                        }
-                        catch (Exception exception)
+                        var ctr = type.GetConstructor(Type.EmptyTypes);
+                        if (ctr == null)
                         {
                             _failAction(null,
-                                $"Failed to initialize an object of type {type} with default constructor resulting in {exception}");
+                                $"Type {type} has to have default constructor as there are non-static test methods.");
                             continue;
                         }
+                        invoker = ctr.Invoke(null);
                     }
-
-                    string skipMessage = CheckIfSkippableTest(invoker, testMethod);
-                    if (skipMessage != null)
+                    catch (Exception exception)
                     {
-                        _skipAction(testMethod, skipMessage);
+                        _failAction(null,
+                            $"Failed to initialize an object of type {type} with default constructor resulting in {exception}");
                         continue;
                     }
-
-                    methodTester.Invoker = invoker;
-                    string errorMessage = methodTester.TestMethod(testMethod);
-                    if (errorMessage == null)
-                    {
-                        _successAction(testMethod, "");
-                    }
-                    else
-                    {
-                        _failAction(testMethod, errorMessage);
-                    }
                 }
-                Debug.Listeners.Clear();
+
+                string skipMessage = CheckIfSkippableTest(invoker, testMethod);
+                if (skipMessage != null)
+                {
+                    _skipAction(testMethod, skipMessage);
+                    continue;
+                }
+
+                methodTester.Invoker = invoker;
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                string errorMessage = methodTester.TestMethod(testMethod);
+                var elapsed = stopwatch.Elapsed;
+                var elapsedFormatted = $"{TimeSplitter}{elapsed.ToString()}";
+                if (errorMessage == null)
+                {
+                    _successAction(testMethod, $"{elapsedFormatted}");
+                }
+                else
+                {
+                    _failAction(testMethod, $"{errorMessage}{elapsedFormatted}");
+                }
             }
+            Debug.Listeners.Clear();
         }
 
         internal static Action<object> StartActionForType(Type type)
@@ -150,6 +142,14 @@ namespace MyNUnit
             };
         }
 
+        private static ICollection<MethodInfo> GetMethodsWithAttribute(Type type, Type attributeType)
+        {
+            return type
+                .GetMethods()
+                .Where(methodInfo => methodInfo.GetCustomAttribute(attributeType) != null)
+                .ToList();
+        }
+
         // Check if testMethod is skippable and return reason message.
         private string CheckIfSkippableTest(object invoker, MethodBase testMethod)
         {
@@ -165,14 +165,6 @@ namespace MyNUnit
 
             var testAttribute = testMethod.GetCustomAttribute(typeof(TestAttribute)) as TestAttribute;
             return testAttribute?.IgnoreWithCause;
-        }
-
-        private static ICollection<MethodInfo> GetMethodsWithAttribute(Type type, Type attributeType)
-        {
-            return type
-                .GetMethods()
-                .Where(methodInfo => methodInfo.GetCustomAttribute(attributeType) != null)
-                .ToList();
         }
     }
 }

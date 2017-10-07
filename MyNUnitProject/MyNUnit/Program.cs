@@ -45,14 +45,24 @@ namespace MyNUnit
 
             var assemblyPaths = GetAssemblyLikePaths(assemblyDir);
 
-            IAssemblyTester assemblyTester = new AssemblyTester(SuccessAction, FailAction, SkipAction);
+            
             foreach (var assemblyPath in assemblyPaths)
             {
                 Logger.Debug($"assembly path: {assemblyPath}");
 
                 var assembly = LoadAssembly(assemblyPath);
 
-                assemblyTester.TestAssembly(assembly);
+                if (assembly == null)
+                {
+                    continue;
+                }
+
+                var typeTester = new TypeTester(SuccessAction, FailAction, SkipAction);
+
+                foreach (var type in assembly.GetExportedTypes())
+                {
+                    typeTester.TestType(type);
+                }
             }
         }
 
