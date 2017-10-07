@@ -80,7 +80,7 @@ namespace MyNUnit
                         if (ctr == null)
                         {
                             _failAction(null,
-                                $"Type {type} has to have default constructor as there are non-static test methods.");
+                                $"type {type} has to have default constructor as there are non-static test methods.");
                             continue;
                         }
                         invoker = ctr.Invoke(null);
@@ -88,7 +88,7 @@ namespace MyNUnit
                     catch (Exception exception)
                     {
                         _failAction(null,
-                            $"Failed to initialize an object of type {type} with default constructor resulting in {exception}");
+                            $"failed to initialize an object of type {type} with default constructor resulting in {exception}");
                         continue;
                     }
                 }

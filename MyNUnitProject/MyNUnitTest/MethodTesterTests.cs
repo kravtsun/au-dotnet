@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MyNUnit;
 using TestedAssembly;
@@ -12,29 +13,31 @@ namespace MyNUnitTest
     public class MethodTesterTests
     {
         private MethodTester _methodTester;
-        private Assembly _testedAssembly;
-        private TypeInfo _testedClass1Info;
         private TestedClass1 _invoker;
+        private TypeInfo _testedClass1Info;
+        private Action<object> _finishAction;
+        private Action<object> _startAction;
+        private ConstructorInfo _constructor;
 
-        [TestInitialize]
-        public void SetUp()
+        public MethodTesterTests()
         {
             string testedAssemblyPath = Directory
                 .GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
                 .First(path => path.Contains("TestedAssembly"));
-            _testedAssembly = Assembly.LoadFrom(testedAssemblyPath);
-            _testedClass1Info = _testedAssembly.GetType("TestedAssembly.TestedClass1").GetTypeInfo();
-            _invoker = (TestedClass1) _testedClass1Info.GetConstructor(Type.EmptyTypes)?.Invoke(null);
-            Assert.IsNotNull(_invoker);
-            var startAction = TypeTester.StartActionForType(_testedClass1Info.AsType());
-            var finishAction = TypeTester.FinishActionForType(_testedClass1Info.AsType());
-            _methodTester = new MethodTester(startAction, finishAction) {Invoker = _invoker};
+            var testedAssembly = Assembly.LoadFrom(testedAssemblyPath);
+            _testedClass1Info = testedAssembly.GetType("TestedAssembly.TestedClass1").GetTypeInfo();
+            
+            _startAction = TypeTester.StartActionForType(_testedClass1Info.AsType());
+            _finishAction = TypeTester.FinishActionForType(_testedClass1Info.AsType());
+            _constructor = _testedClass1Info.GetConstructor(Type.EmptyTypes);
         }
 
-        [TestCleanup]
-        public void TearDown()
+        [TestInitialize]
+        public void SetUp()
         {
-            _invoker.CleanTest();
+            _invoker = (TestedClass1) _constructor.Invoke(null);
+            Assert.IsNotNull(_invoker);
+            _methodTester = new MethodTester(_startAction, _finishAction) {Invoker = _invoker};
         }
 
         [TestMethod()]
@@ -75,6 +78,50 @@ namespace MyNUnitTest
             string testResult = _methodTester.TestMethod(exceptionThrowingMethod);
             Assert.IsNull(testResult);
             TestStartOnlyCalled();
+        }
+
+        [TestMethod]
+        public void TestingMethodFailsIfSetUpThrowsException()
+        {
+            string exceptionMessage = "SetUpException";
+            Action<object> newStartAction = (obj) =>
+            {
+                _startAction(obj);
+                throw new Exception(exceptionMessage);
+            };
+            _methodTester.SetUp = newStartAction;
+            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+
+            var testResult = _methodTester.TestMethod(simpleMethod);
+            Assert.IsTrue(testResult.Contains(exceptionMessage));
+            TestStartOnlyCalled();
+        }
+
+        [TestMethod]
+        public void TestingMethodFailsIfTearDownThrowsException()
+        {
+            string exceptionMessage = "TearDownException";
+            Action<object> newFinishAction = (obj) =>
+            {
+                _startAction(obj);
+                throw new Exception(exceptionMessage);
+            };
+            _methodTester.TearDown = newFinishAction;
+            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+
+            var testResult = _methodTester.TestMethod(simpleMethod);
+            Assert.IsTrue(testResult.Contains(exceptionMessage));
+            TestStartOnlyCalled();
+        }
+
+        [TestMethod]
+        public void TestingNonStaticMethodFailsIfNoObject()
+        {
+            _invoker = null;
+            _methodTester.Invoker = null;
+            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+            var testResult = _methodTester.TestMethod(simpleMethod);
+            Assert.IsTrue(testResult.Contains("Non-static method requires a target."));
         }
 
         private void TestStateCorrectCleanup()

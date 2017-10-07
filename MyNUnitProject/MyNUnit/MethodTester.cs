@@ -6,16 +6,42 @@ namespace MyNUnit
 {
     internal class MethodTester
     {
-        private readonly Action<object> _setUp;
-        private readonly Action<object> _tearDown;
+        private Action<object> setUp;
+        private Action<object> tearDown;
 
         internal MethodTester(Action<object> setUp, Action<object> tearDown)
         {
-            _setUp = setUp;
-            _tearDown = tearDown;
+            SetUp = setUp;
+            TearDown = tearDown;
         }
 
         internal object Invoker { get; set; }
+
+        internal Action<object> TearDown
+        {
+            get
+            {
+                return tearDown;
+            }
+
+            set
+            {
+                tearDown = value;
+            }
+        }
+
+        internal Action<object> SetUp
+        {
+            get
+            {
+                return setUp;
+            }
+
+            set
+            {
+                setUp = value;
+            }
+        }
 
         // returns error message or null in case of success.
         internal string TestMethod(MethodInfo method)
@@ -24,7 +50,7 @@ namespace MyNUnit
             var expectedExceptionType = testAttribute?.Expected;
             try
             {
-                _setUp(Invoker);
+                SetUp(Invoker);
             }
             catch (TargetInvocationException invocationException)
             {
@@ -58,7 +84,7 @@ namespace MyNUnit
 
             try
             {
-                _tearDown(Invoker);
+                TearDown(Invoker);
             }
             catch (TargetInvocationException invocationException)
             {

@@ -29,6 +29,7 @@ namespace MyNUnitTest
             
             Program.Main(args);
             Assert.IsFalse(TestedAssembly.TestedClass1.IsIgnoredRun);
+            Assert.AreEqual(3.14, TestedAssembly.TestedClass2.MustBePi);
 
             string[] expectedLogs =
             {   "Testing assembly: MyNUnit",
