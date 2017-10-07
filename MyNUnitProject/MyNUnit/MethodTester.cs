@@ -6,9 +6,6 @@ namespace MyNUnit
 {
     internal class MethodTester
     {
-        private Action<object> setUp;
-        private Action<object> tearDown;
-
         internal MethodTester(Action<object> setUp, Action<object> tearDown)
         {
             SetUp = setUp;
@@ -17,31 +14,9 @@ namespace MyNUnit
 
         internal object Invoker { get; set; }
 
-        internal Action<object> TearDown
-        {
-            get
-            {
-                return tearDown;
-            }
+        internal Action<object> TearDown { get; set; }
 
-            set
-            {
-                tearDown = value;
-            }
-        }
-
-        internal Action<object> SetUp
-        {
-            get
-            {
-                return setUp;
-            }
-
-            set
-            {
-                setUp = value;
-            }
-        }
+        internal Action<object> SetUp { get; set; }
 
         // returns error message or null in case of success.
         internal string TestMethod(MethodInfo method)
@@ -99,10 +74,10 @@ namespace MyNUnit
             return null;
         }
 
-        private static string MethodFailMessage(string phase, Exception exception, Type expectedException) => expectedException == null ?
+        internal static string MethodFailMessage(string phase, Exception exception, Type expectedException) => expectedException == null ?
             $"failed while {phase} with message: {exception.Message}" :
             $"failed while {phase} with exception: {exception} when expected exception: {expectedException}";
 
-        private static string TestingFailMessage(string phase, Exception exception) => $"Testing failed in {phase} with error: {exception.Message}";
+        internal static string TestingFailMessage(string phase, Exception exception) => $"Testing failed in {phase} with error: {exception.Message}";
     }
 }

@@ -27,19 +27,19 @@ namespace TestedAssembly
             return TestMethodResult;
         }
 
-        [BeforeClass]
+        [Before]
         public void FirstSetUp()
         {
             IsFirstSetUpRun = true;
         }
 
-        [BeforeClass]
+        [Before]
         public void SecondSetUp()
         {
             IsSecondSetUpRun = true;
         }
 
-        [AfterClass]
+        [After]
         public void FirstTearDown()
         {
             IsFirstTearDownRun = true;

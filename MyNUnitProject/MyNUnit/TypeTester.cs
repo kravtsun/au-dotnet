@@ -65,6 +65,12 @@ namespace MyNUnit
             var startAction = StartActionForType(type);
             var finishAction = FinishActionForType(type);
             var methodTester = new MethodTester(startAction, finishAction);
+            string beforeClassErrorMessage = RunClassTestMethods(type, false);
+            if (beforeClassErrorMessage != null)
+            {
+                _failAction(null, beforeClassErrorMessage);
+                return;
+            }
 
             bool areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
 
@@ -93,7 +99,7 @@ namespace MyNUnit
                     }
                 }
 
-                string skipMessage = CheckIfSkippableTest(invoker, testMethod);
+                string skipMessage = CheckIfSkippableTest(testMethod);
                 if (skipMessage != null)
                 {
                     _skipAction(testMethod, skipMessage);
@@ -115,12 +121,20 @@ namespace MyNUnit
                     _failAction(testMethod, $"{errorMessage}{elapsedFormatted}");
                 }
             }
+
+            string afterClassErrorMessage = RunClassTestMethods(type, true);
+            if (afterClassErrorMessage != null)
+            {
+                _failAction(null, afterClassErrorMessage);
+                return;
+            }
+
             Debug.Listeners.Clear();
         }
 
         internal static Action<object> StartActionForType(Type type)
         {
-            var startMethods = GetMethodsWithAttribute(type, typeof(BeforeClassAttribute));
+            var startMethods = GetMethodsWithAttribute(type, typeof(BeforeAttribute));
             return invoker =>
             {
                 foreach (var startMethod in startMethods)
@@ -132,7 +146,7 @@ namespace MyNUnit
 
         internal static Action<object> FinishActionForType(Type type)
         {
-            var finishMethods = GetMethodsWithAttribute(type, typeof(AfterClassAttribute));
+            var finishMethods = GetMethodsWithAttribute(type, typeof(AfterAttribute));
             return invoker =>
             {
                 foreach (var finishMethod in finishMethods)
@@ -151,13 +165,8 @@ namespace MyNUnit
         }
 
         // Check if testMethod is skippable and return reason message.
-        private string CheckIfSkippableTest(object invoker, MethodBase testMethod)
+        private string CheckIfSkippableTest(MethodBase testMethod)
         {
-            if (invoker == null && !testMethod.IsStatic)
-            {
-                return "non-static";
-            }
-
             if (testMethod.IsAbstract)
             {
                 return "abstract";
@@ -165,6 +174,33 @@ namespace MyNUnit
 
             var testAttribute = testMethod.GetCustomAttribute(typeof(TestAttribute)) as TestAttribute;
             return testAttribute?.IgnoreWithCause;
+        }
+
+        private string RunClassTestMethods(Type type, bool isAfterClass)
+        {
+            var classAttribute = isAfterClass ? typeof(AfterClassAttribute) : typeof(BeforeClassAttribute);
+            foreach (var method in GetMethodsWithAttribute(type, classAttribute))
+            {
+                if (!method.IsStatic)
+                {
+                    var methodType = isAfterClass ? "After" : "Before";
+                    return $"{methodType}Class method {method} is non-static";
+                }
+                try
+                {
+                    method.Invoke(null, null);
+                }
+                catch (TargetInvocationException invocationException)
+                {
+                    var baseException = invocationException.GetBaseException();
+                    return MethodTester.MethodFailMessage("BeforeClass", baseException, null);
+                }
+                catch (Exception exception)
+                {
+                    return MethodTester.TestingFailMessage("BeforeClass", exception);
+                }
+            }
+            return null;
         }
     }
 }

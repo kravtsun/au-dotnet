@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Net.NetworkInformation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MyNUnit;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using TestedAssembly;
 
 namespace MyNUnitTest
 {
@@ -28,8 +28,14 @@ namespace MyNUnitTest
             LogManager.Configuration = newConfig;
             
             Program.Main(args);
-            Assert.IsFalse(TestedAssembly.TestedClass1.IsIgnoredRun);
-            Assert.AreEqual(3.14, TestedAssembly.TestedClass2.MustBePi);
+            Assert.IsFalse(TestedClass1.IsIgnoredRun);
+            Assert.AreEqual(3.14, TestedClass2.MustBePi);
+            Assert.IsTrue(TestedClass2.IsAfterRun);
+            Assert.IsTrue(TestedClass2.IsAfterNonStaticRun);
+            Assert.IsTrue(TestedClass2.IsBeforeRun);
+            Assert.IsTrue(TestedClass2.IsBeforeNonStaticRun);
+            Assert.IsFalse(FailStartClass.IsTestRun);
+            Assert.IsTrue(FailFinishClass.IsTestRun);
 
             string[] expectedLogs =
             {   "Testing assembly: MyNUnit",
@@ -38,6 +44,8 @@ namespace MyNUnitTest
                 "Testing assembly: MyNUnitTest",
                 "Testing assembly: NLog",
                 "Testing assembly: TestedAssembly",
+                "FAILED: FailFinishClass.Test with message: failed while TearDown with message: FailSetUp",
+                "FAILED: FailStartClass.Test with message: failed while SetUp with message: FailSetUp",
                 "SUCCESS: TestedClass2.SimpleTest",
                 "FAILED: TestedClass2.SimpleFailTest with message: failed while running with message: SimpleFailTest",
                 "SUCCESS: TestedClass1.SimpleTest",
@@ -45,7 +53,7 @@ namespace MyNUnitTest
                 "SUCCESS: TestedClass1.NullReferenceExceptionTest",
                 "FAILED: TestedClass1.ExceptionFailTest with message: failed while running with message: ExceptionFailTest",
                 "FAILED: TestedClass1.AssertFailTest with message: failed while running with message: Debug.Assert: FAIL",
-                "SKIPPED: TestedClass1.IgnoreTest"
+                "SKIPPED: TestedClass1.IgnoreTest",
             };
 
             var logs = memoryTarget.Logs;
@@ -55,7 +63,6 @@ namespace MyNUnitTest
             {
                 string rawLogMessage = CutTimeStampSuffix(logs[i]);
                 Assert.AreEqual(expectedLogs[i], rawLogMessage);
-                System.Console.WriteLine(logs[i]);
             }
         }
 

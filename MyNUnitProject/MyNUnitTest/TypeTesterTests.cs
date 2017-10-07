@@ -39,25 +39,25 @@ namespace MyNUnitTest
         {
             public static int Field { get; set; }
 
-            [BeforeClass]
+            [Before]
             public static void FirstSetUp()
             {
                 Field += 1;
             }
 
-            [BeforeClass]
+            [Before]
             public static void SecondSetUp()
             {
                 Field += 2;
             }
 
-            [AfterClass]
+            [After]
             public static void FirstTearDown()
             {
                 Field -= 1;
             }
 
-            [AfterClass]
+            [After]
             public static void SecondTearDown()
             {
                 Field -= 2;

@@ -11,7 +11,7 @@ namespace MyNUnit
     {
         internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static readonly Func<MethodInfo, string> PrettyMethodName = method => $"{method.ReflectedType?.Name}.{method.Name}";
+        private static readonly Func<MethodInfo, string> PrettyMethodName = method => method == null? "null" : $"{method.ReflectedType?.Name}.{method.Name}";
 
         private static readonly Action<MethodInfo, string> SuccessAction = (method, message) =>
         {
@@ -44,7 +44,6 @@ namespace MyNUnit
             var assemblyDir = args[0];
 
             var assemblyPaths = GetAssemblyLikePaths(assemblyDir);
-
             
             foreach (var assemblyPath in assemblyPaths)
             {
@@ -77,7 +76,7 @@ namespace MyNUnit
             }
             catch (BadImageFormatException)
             {
-                Logger.Info($"Not an assembly: {assemblyPath}");
+                Logger.Info($"Bad assembly: {assemblyPath}");
             }
             catch (Exception)
             {

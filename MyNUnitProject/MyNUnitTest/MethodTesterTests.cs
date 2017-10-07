@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MyNUnit;
 using TestedAssembly;
@@ -14,10 +13,10 @@ namespace MyNUnitTest
     {
         private MethodTester _methodTester;
         private TestedClass1 _invoker;
-        private TypeInfo _testedClass1Info;
-        private Action<object> _finishAction;
-        private Action<object> _startAction;
-        private ConstructorInfo _constructor;
+        private readonly TypeInfo _testedClass1Info;
+        private readonly Action<object> _finishAction;
+        private readonly Action<object> _startAction;
+        private readonly ConstructorInfo _constructor;
 
         public MethodTesterTests()
         {
