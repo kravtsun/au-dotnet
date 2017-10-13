@@ -12,39 +12,36 @@ namespace Trie
 
         public bool Add(string element)
         {
-            Vertex current = this.TraverseWord(element, true);
+            Vertex current = TraverseWord(element, true);
             if (current.IsTerminal)
             {
                 return false;
             }
-            else
+            current.IsTerminal = true;
+            while (current != null)
             {
-                current.IsTerminal = true;
-                while (current != null)
-                {
-                    ++current.SubTreeSize;
-                    current = current.Parent;
-                }
-
-                return true;
+                ++current.SubTreeSize;
+                current = current.Parent;
             }
+
+            return true;
         }
 
         public bool Contains(string element)
         {
-            Vertex current = this.TraverseWord(element, false);
-            return current != null && current.IsTerminal;
+            Vertex current = TraverseWord(element, false);
+            return current?.IsTerminal ?? false;
         }
 
         public int HowManyStartsWithPrefix(string prefix)
         {
-            Vertex current = this.TraverseWord(prefix, false);
+            Vertex current = TraverseWord(prefix, false);
             return current?.SubTreeSize ?? 0;
         }
 
         public bool Remove(string element)
         {
-            Vertex current = this.TraverseWord(element, false);
+            Vertex current = TraverseWord(element, false);
             if (current == null || !current.IsTerminal)
             {
                 return false;
@@ -53,14 +50,14 @@ namespace Trie
             current.IsTerminal = false;
             for (int i = element.Length - 1; i >= 0; --i)
             {
-                this.RemoveIfEmpty(current, element[i]);
+                current.RemoveIfEmpty(element[i]);
                 current = current.Parent;
             }
 
-            --this._root.SubTreeSize;
-            if (this._root.SubTreeSize == 0)
+            --_root.SubTreeSize;
+            if (_root.SubTreeSize == 0)
             {
-                this._root = null;
+                _root = null;
             }
 
             return true;
@@ -68,16 +65,16 @@ namespace Trie
 
         public int Size()
         {
-            return this._root?.SubTreeSize ?? 0;
+            return _root?.SubTreeSize ?? 0;
         }
 
         private Vertex TraverseWord(string element, bool addIfNotExists)
         {
-            if (this._root == null)
+            if (_root == null)
             {
                 if (addIfNotExists)
                 {
-                    this._root = new Vertex(null); // root only.
+                    _root = new Vertex(null); // _root only.
                 }
                 else
                 {
@@ -85,7 +82,7 @@ namespace Trie
                 }
             }
 
-            Vertex current = this._root;
+            Vertex current = _root;
 
             foreach (char c in element)
             {
@@ -100,23 +97,14 @@ namespace Trie
             return current;
         }
 
-        private void RemoveIfEmpty(Vertex current, char stepChar)
-        {
-            --current.SubTreeSize;
-            if (current.SubTreeSize == 0)
-            {
-                current.Parent?.SetNext(stepChar, null);
-            }
-        }
-
         private class Vertex
         {
             public Vertex(Vertex parent)
             {
-                this.IsTerminal = false;
-                this.SubTreeSize = 0;
-                this.Parent = parent;
-                this.Next = new Dictionary<char, Vertex>();
+                IsTerminal = false;
+                SubTreeSize = 0;
+                Parent = parent;
+                Next = new Dictionary<char, Vertex>();
             }
 
             public bool IsTerminal { get; set; }
@@ -129,17 +117,27 @@ namespace Trie
 
             public bool ContainsNext(char c)
             {
-                return this.Next.ContainsKey(c);
+                return Next.ContainsKey(c);
             }
 
             public Vertex GetNext(char c)
             {
-                return this.Next[c];
+                return Next[c];
             }
 
             public void SetNext(char c, Vertex newVertex)
             {
-                this.Next[c] = newVertex;
+                Next[c] = newVertex;
+            }
+
+
+            public void RemoveIfEmpty(char stepChar)
+            {
+                --SubTreeSize;
+                if (SubTreeSize == 0)
+                {
+                    Parent?.SetNext(stepChar, null);
+                }
             }
         }
     }

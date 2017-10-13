@@ -4,7 +4,7 @@ using Trie;
 namespace TrieTests
 {
     using TrieImpl = Trie.Trie;
-    [TestClass()]
+    [TestClass]
     public class TrieTests
     {
         private ITrie _trie;
@@ -15,7 +15,7 @@ namespace TrieTests
             _trie = new TrieImpl();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void UnicodeTest()
         {
             
@@ -25,7 +25,7 @@ namespace TrieTests
             Assert.IsFalse(_trie.Contains(s.Substring(0, 1)));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void EmptyTest()
         {
             const string empty = "";
@@ -37,7 +37,7 @@ namespace TrieTests
             Assert.IsFalse(_trie.Contains(empty));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void SimplePrefixTest()
         {
             const string s = "abc";
@@ -53,7 +53,7 @@ namespace TrieTests
             Assert.IsFalse(_trie.Contains(s));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void HowManyStartsWithPrefixTest()
         {
             Assert.IsTrue(_trie.Add("abc"));
@@ -67,7 +67,7 @@ namespace TrieTests
             Assert.AreEqual(2, _trie.HowManyStartsWithPrefix("a"));
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ContainsTest()
         {
             Assert.IsTrue(_trie.Add("ab"));
