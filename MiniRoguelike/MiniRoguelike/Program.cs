@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniRoguelike
 {
@@ -12,13 +8,13 @@ namespace MiniRoguelike
         {
             if (args.Length != 1)
             {
-                System.Console.WriteLine("USAGE: <executable> <map file>");
-                System.Console.WriteLine();
-                System.Console.WriteLine("Map format: \n" + Map.Format());
-                System.Console.WriteLine("Cells format: \n" + Map.Cell.Format());
+                Console.WriteLine("USAGE: <executable> <map file>");
+                Console.WriteLine();
+                Console.WriteLine("Map format: \n" + Map.Format());
+                Console.WriteLine("Cells format: \n" + Map.Cell.Format());
                 return;
             }
-            string mapFilename = args[0];
+            var mapFilename = args[0];
             Map map;
             try
             {
@@ -26,18 +22,16 @@ namespace MiniRoguelike
             }
             catch (Exception e)
             {
-                System.Console.Error.WriteLine($"Failed to read map from file {mapFilename}, exception: {e.Message}");
+                Console.Error.WriteLine($"Failed to read map from file {mapFilename}, exception: {e.Message}");
                 return;
             }
 
-            Map.Point playerCoordinates = map.GetPlayerCoordinates();
+            var playerCoordinates = map.GetPlayerCoordinates();
 
             if (playerCoordinates.IsInvalid())
-            {
-                System.Console.WriteLine("Invalid map: nowhere to place the player");
-            }
+                Console.WriteLine("Invalid map: nowhere to place the player");
 
-            Player player = new Player(map, playerCoordinates);
+            var player = new Player(map, playerCoordinates);
 
             ConsoleKeyInfo keyinfo;
             do
@@ -59,27 +53,26 @@ namespace MiniRoguelike
                         player.MoveDown();
                         break;
                     default:
-                        System.Console.Write("\r");
-                        System.Console.Write($"Unknown key pressed: {keyinfo.Key}. ");
-                        System.Console.WriteLine("Press any key to continue...");
+                        Console.Write("\r");
+                        Console.Write($"Unknown key pressed: {keyinfo.Key}. ");
+                        Console.WriteLine("Press any key to continue...");
                         Console.ReadKey();
                         break;
                 }
-            }
-            while (keyinfo.Key != ConsoleKey.X);
+            } while (keyinfo.Key != ConsoleKey.X);
         }
 
         private static void DrawMap(Map map)
         {
-            System.Console.Clear();
-            System.Console.CursorVisible = false;
-            for (int y = 0; y < map.Height; ++y)
+            Console.Clear();
+            Console.CursorVisible = false;
+            for (var y = 0; y < map.Height; ++y)
             {
-                for (int x = 0; x < map.Width; ++x)
+                for (var x = 0; x < map.Width; ++x)
                 {
-                    System.Console.Write(map.GetCell(x, y).ToString());
+                    Console.Write(map.GetCell(x, y).ToString());
                 }
-                System.Console.WriteLine();
+                Console.WriteLine();
             }
         }
     }

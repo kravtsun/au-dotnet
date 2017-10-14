@@ -8,7 +8,9 @@ namespace MiniRoguelike
     {
         public struct Cell
         {
-            public enum Type
+            private readonly Type _type;
+
+            private enum Type
             {
                 Empty,
                 Wall,
@@ -45,39 +47,23 @@ namespace MiniRoguelike
                 }
             }
 
-            private readonly Type _type;
-
-            public Cell(Type type)
-            {
-                _type = type;
-            }
-
             public Cell(char code)
             {
                 _type = TypeFromChar(code);
             }
+            
+            public bool IsFree() => _type.Equals(Type.Empty);
 
-            public Type GetCellType()
-            {
-                return _type;
-            }
+            public bool IsCharacter() => _type.Equals(Type.Character);
 
-            public bool IsFree()
-            {
-                return _type.Equals(Type.Empty);
-            }
-
-            public override string ToString()
-            {
-                return $"{CharFromType(_type)}";
-            }
+            public override string ToString() => $"{CharFromType(_type)}";
 
             public static string Format()
             {
                 var sb = new StringBuilder();
-                foreach (Type cellType in System.Enum.GetValues(typeof(Type)))
+                foreach (Type cellType in Enum.GetValues(typeof(Type)))
                 {
-                    string cellTypeName = System.Enum.GetName(typeof(Type), cellType);
+                    var cellTypeName = Enum.GetName(typeof(Type), cellType);
                     sb.Append($"{CharFromType(cellType)} - {cellTypeName};\n");
                 }
                 return sb.ToString();
