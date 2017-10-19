@@ -25,7 +25,7 @@ namespace MiniRoguelike
 
                 while (true)
                 {
-                    var key = Console.ReadKey();
+                    var key = Console.ReadKey(true);
                     switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
@@ -58,6 +58,14 @@ namespace MiniRoguelike
             public void RegisterRight(ArrowHandler handler) => RightPressed += handler;
 
             public void RegisterUnknown(ArrowHandler handler) => UnknownPressed += handler;
+
+            public void RegisterExit(ArrowHandler handler)
+            {
+                Console.CancelKeyPress += delegate
+                {
+                    handler.Invoke();
+                };
+            }
         }
 
         public static void Main(string[] args)
@@ -125,10 +133,14 @@ namespace MiniRoguelike
             eventLoop.RegisterUnknown(
                 delegate
                 {
-                    Console.Write("\r");
-                    Console.Write("Unknown key pressed.");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
+                    Console.Write("Unknown key pressed. Use arrows or press Esc to exit. \n");
+                }
+            );
+
+            eventLoop.RegisterExit(
+                delegate
+                {
+                    Environment.Exit(0);
                 }
             );
 
