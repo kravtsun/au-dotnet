@@ -51,14 +51,14 @@ namespace MiniRoguelike
             {
                 _type = TypeFromChar(code);
             }
-            
+
             public bool IsFree() => _type.Equals(Type.Empty);
 
             public bool IsCharacter() => _type.Equals(Type.Character);
 
             public override string ToString() => $"{CharFromType(_type)}";
 
-            public static string Format()
+            public static string CellFormat()
             {
                 var sb = new StringBuilder();
                 foreach (Type cellType in Enum.GetValues(typeof(Type)))
