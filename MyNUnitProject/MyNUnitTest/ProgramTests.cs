@@ -8,10 +8,10 @@ using TestedAssembly;
 
 namespace MyNUnitTest
 {
-    [TestClass()]
+    [TestClass]
     public class ProgramTests
     {
-        [TestMethod()]
+        [TestMethod]
         public void MainTest()
         {
             string[] args = {AppDomain.CurrentDomain.BaseDirectory};
@@ -53,7 +53,7 @@ namespace MyNUnitTest
                 "SUCCESS: TestedClass1.NullReferenceExceptionTest",
                 "FAILED: TestedClass1.ExceptionFailTest with message: failed while running with message: ExceptionFailTest",
                 "FAILED: TestedClass1.AssertFailTest with message: failed while running with message: Debug.Assert: FAIL",
-                "SKIPPED: TestedClass1.IgnoreTest",
+                "SKIPPED: TestedClass1.IgnoreTest"
             };
 
             var logs = memoryTarget.Logs;
@@ -68,8 +68,8 @@ namespace MyNUnitTest
 
         private static string CutTimeStampSuffix(string message)
         {
-            string timeSplitter = TypeTester.TimeSplitter;
-            int timeSplitterStartIndex = message.Length - timeSplitter.Length - 1;
+            var timeSplitter = TypeTester.TimeSplitter;
+            var timeSplitterStartIndex = message.Length - timeSplitter.Length - 1;
             while (timeSplitterStartIndex >= 0)
             {
                 if (message.Substring(timeSplitterStartIndex, timeSplitter.Length).Equals(timeSplitter))

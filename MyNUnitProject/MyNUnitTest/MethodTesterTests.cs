@@ -8,7 +8,7 @@ using TestedAssembly;
 
 namespace MyNUnitTest
 {
-    [TestClass()]
+    [TestClass]
     public class MethodTesterTests
     {
         private MethodTester _methodTester;
@@ -39,7 +39,7 @@ namespace MyNUnitTest
             _methodTester = new MethodTester(_startAction, _finishAction) {Invoker = _invoker};
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void SimpleTestMethod_IsTestedSuccessfullyWithTestContracts()
         {
             TestStateCorrectCleanup();
@@ -49,7 +49,7 @@ namespace MyNUnitTest
             TestStartAndFinishAreCalled();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ExceptionThrowingTest_IsTestedWithExceptionMessageReturned()
         {
             TestStateCorrectCleanup();
@@ -59,7 +59,7 @@ namespace MyNUnitTest
             TestStartOnlyCalled();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ExceptionExpectingTest_IsTestedWithSuccess()
         {
             TestStateCorrectCleanup();
@@ -69,7 +69,7 @@ namespace MyNUnitTest
             TestStartOnlyCalled();
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void NullReferenceExceptionExpectingTest_IsTestedWithSuccess()
         {
             TestStateCorrectCleanup();
@@ -82,8 +82,8 @@ namespace MyNUnitTest
         [TestMethod]
         public void TestingMethodFailsIfSetUpThrowsException()
         {
-            string exceptionMessage = "SetUpException";
-            Action<object> newStartAction = (obj) =>
+            const string exceptionMessage = "SetUpException";
+            Action<object> newStartAction = obj =>
             {
                 _startAction(obj);
                 throw new Exception(exceptionMessage);
@@ -99,8 +99,8 @@ namespace MyNUnitTest
         [TestMethod]
         public void TestingMethodFailsIfTearDownThrowsException()
         {
-            string exceptionMessage = "TearDownException";
-            Action<object> newFinishAction = (obj) =>
+            const string exceptionMessage = "TearDownException";
+            Action<object> newFinishAction = obj =>
             {
                 _startAction(obj);
                 throw new Exception(exceptionMessage);

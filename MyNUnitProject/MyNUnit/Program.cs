@@ -7,29 +7,32 @@ using NLog;
 
 namespace MyNUnit
 {
-    public class Program
+    public static class Program
     {
-        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static readonly Func<MethodInfo, string> PrettyMethodName = method => method == null? "null" : $"{method.ReflectedType?.Name}.{method.Name}";
+        private static readonly Func<MethodInfo, string> PrettyMethodName = method =>
+        {
+            return method == null ? "null" : $"{method.ReflectedType?.Name}.{method.Name}";
+        };
 
         private static readonly Action<MethodInfo, string> SuccessAction = (method, message) =>
         {
-            string methodName = PrettyMethodName(method);
-            string clientMessage = $"SUCCESS: {methodName}" + (message ?? string.Empty);
+            var methodName = PrettyMethodName(method);
+            var clientMessage = $"SUCCESS: {methodName}" + message;
             Logger.Info(clientMessage);
         };
 
         private static readonly Action<MethodInfo, string> FailAction = (method, message) =>
         {
-            string methodName = PrettyMethodName(method);
-            string clientMessage = $"FAILED: {methodName} with message: {message}";
+            var methodName = PrettyMethodName(method);
+            var clientMessage = $"FAILED: {methodName} with message: {message}";
             Logger.Info(clientMessage);
         };
 
         private static readonly Action<MethodInfo, string> SkipAction = (method, message) =>
         {
-            string methodName = PrettyMethodName(method);
+            var methodName = PrettyMethodName(method);
             Logger.Info($"SKIPPED: {methodName}");
         };
 
@@ -37,7 +40,7 @@ namespace MyNUnit
         {
             if (args.Length != 1)
             {
-                string executablePath = Assembly.GetEntryAssembly().Location;
+                var executablePath = Assembly.GetEntryAssembly().Location;
                 Console.WriteLine($"USAGE: {executablePath} <assemblies directory>");
                 return;
             }

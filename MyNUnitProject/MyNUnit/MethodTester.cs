@@ -1,4 +1,4 @@
-﻿using MyNUnitFramework.Attribute;
+﻿using MyNUnitFramework.Attributes;
 using System;
 using System.Reflection;
 
@@ -12,11 +12,11 @@ namespace MyNUnit
             TearDown = tearDown;
         }
 
-        internal object Invoker { get; set; }
+        internal object Invoker { private get; set; }
 
-        internal Action<object> TearDown { get; set; }
+        internal Action<object> TearDown { private get; set; }
 
-        internal Action<object> SetUp { get; set; }
+        internal Action<object> SetUp { private get; set; }
 
         // returns error message or null in case of success.
         internal string TestMethod(MethodInfo method)
@@ -43,7 +43,7 @@ namespace MyNUnit
             }
             catch (TargetInvocationException exception)
             {
-                Exception catchedException = exception.GetBaseException();
+                var catchedException = exception.GetBaseException();
                 Type catchedExceptionType = catchedException.GetType();
                 if (expectedExceptionType != null && expectedExceptionType.IsAssignableFrom(catchedExceptionType))
                 {
@@ -74,10 +74,16 @@ namespace MyNUnit
             return null;
         }
 
-        internal static string MethodFailMessage(string phase, Exception exception, Type expectedException) => expectedException == null ?
-            $"failed while {phase} with message: {exception.Message}" :
-            $"failed while {phase} with exception: {exception} when expected exception: {expectedException}";
+        internal static string MethodFailMessage(string phase, Exception exception, Type expectedException)
+        {
+            return expectedException == null
+                ? $"failed while {phase} with message: {exception.Message}"
+                : $"failed while {phase} with exception: {exception} when expected exception: {expectedException}";
+        }
 
-        internal static string TestingFailMessage(string phase, Exception exception) => $"Testing failed in {phase} with error: {exception.Message}";
+        internal static string TestingFailMessage(string phase, Exception exception)
+        {
+            return $"Testing failed in {phase} with error: {exception.Message}";
+        }
     }
 }

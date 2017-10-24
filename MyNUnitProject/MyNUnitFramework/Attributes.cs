@@ -2,10 +2,10 @@
 
 namespace MyNUnitFramework
 {
-    namespace Attribute
+    namespace Attributes
     {
         // Annotates test method.
-        public class TestAttribute : System.Attribute
+        public class TestAttribute : Attribute
         {
             public Type Expected { get; set; }
 
@@ -13,15 +13,15 @@ namespace MyNUnitFramework
         }
 
         // Annotates methods being run before any test method.
-        public class BeforeAttribute : System.Attribute {}
+        public class BeforeAttribute : Attribute {}
 
         // Annotates methods being run after any test method.
-        public class AfterAttribute : System.Attribute {}
+        public class AfterAttribute : Attribute {}
 
         // Annotates methods being run after testing any class.
-        public class BeforeClassAttribute : System.Attribute {}
+        public class BeforeClassAttribute : Attribute {}
 
         // Annotates methods being run after testing any class.
-        public class AfterClassAttribute : System.Attribute {}
+        public class AfterClassAttribute : Attribute {}
     }
 }

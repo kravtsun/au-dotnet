@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using MyNUnitFramework.Attribute;
+using MyNUnitFramework.Attributes;
 
 namespace TestedAssembly
 {
@@ -8,13 +8,13 @@ namespace TestedAssembly
     {
         public int TestMethodResult { get; } = 42;
 
-        public bool IsFirstSetUpRun { get; set; }
+        public bool IsFirstSetUpRun { get; private set; }
 
-        public bool IsSecondSetUpRun { get; set; }
+        public bool IsSecondSetUpRun { get; private set; }
 
-        public bool IsFirstTearDownRun { get; set; }
+        public bool IsFirstTearDownRun { get; private set; }
 
-        public static bool IsIgnoredRun { get; set; }
+        public static bool IsIgnoredRun { get; private set; }
 
         public TestedClass1()
         {

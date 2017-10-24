@@ -1,15 +1,15 @@
 ﻿using System;
-using MyNUnitFramework.Attribute;
+using MyNUnitFramework.Attributes;
 
 namespace TestedAssembly
 {
     public class TestedClass2
     {
-        public static bool IsBeforeRun { get; set; }
-        public static bool IsAfterRun { get; set; }
-        public static bool IsBeforeNonStaticRun { get; set; }
-        public static bool IsAfterNonStaticRun { get; set; }
-        public static double MustBePi { get; set; } = 2.67;
+        public static bool IsBeforeRun { get; private set; }
+        public static bool IsAfterRun { get; private set; }
+        public static bool IsBeforeNonStaticRun { get; private set; }
+        public static bool IsAfterNonStaticRun { get; private set; }
+        public static double MustBePi { get; private set; } = 2.67;
 
         [BeforeClass]
         public static void BeforeMethod()

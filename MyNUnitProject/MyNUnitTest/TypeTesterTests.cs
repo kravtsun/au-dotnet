@@ -1,10 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MyNUnit;
-using MyNUnitFramework.Attribute;
+using MyNUnitFramework.Attributes;
 
 namespace MyNUnitTest
 {
-    [TestClass()]
+    [TestClass]
     public class TypeTesterTests
     {
         [TestInitialize]
@@ -13,7 +13,7 @@ namespace MyNUnitTest
             TestClass.Field = 0;
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void StartActionForTypeTest()
         {
             var startAction = TypeTester.StartActionForType(typeof(TestClass));
@@ -24,7 +24,7 @@ namespace MyNUnitTest
             Assert.AreEqual(6, TestClass.Field);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void FinishActionForTypeTest()
         {
             var finishAction = TypeTester.FinishActionForType(typeof(TestClass));

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using MyNUnitFramework.Attribute;
+using System.Runtime.Serialization;
+using MyNUnitFramework.Attributes;   
 
 using MethodResultCallback = System.Action<System.Reflection.MethodInfo, string>;
 
@@ -11,7 +12,7 @@ namespace MyNUnit
 {
     internal class TypeTester
     {
-        internal static string TimeSplitter { get; } = "### time: ";
+        internal const string TimeSplitter = "### time: ";
         private readonly MethodResultCallback _successAction;
         private readonly MethodResultCallback _failAction;
         private readonly MethodResultCallback _skipAction;
@@ -39,8 +40,7 @@ namespace MyNUnit
                 : base(message)
             { }
 
-            protected DebugAssertException(System.Runtime.Serialization.SerializationInfo info,
-                System.Runtime.Serialization.StreamingContext context)
+            protected DebugAssertException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             { }
         }
@@ -65,14 +65,14 @@ namespace MyNUnit
             var startAction = StartActionForType(type);
             var finishAction = FinishActionForType(type);
             var methodTester = new MethodTester(startAction, finishAction);
-            string beforeClassErrorMessage = RunClassTestMethods(type, false);
+            var beforeClassErrorMessage = RunClassTestMethods(type, false);
             if (beforeClassErrorMessage != null)
             {
                 _failAction(null, beforeClassErrorMessage);
                 return;
             }
 
-            bool areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
+            var areAllTestMethodsStatic = testMethods.All(m => m.IsStatic);
 
             foreach (var testMethod in testMethods)
             {
@@ -99,7 +99,7 @@ namespace MyNUnit
                     }
                 }
 
-                string skipMessage = CheckIfSkippableTest(testMethod);
+                var skipMessage = CheckIfSkippableTest(testMethod);
                 if (skipMessage != null)
                 {
                     _skipAction(testMethod, skipMessage);
@@ -109,7 +109,7 @@ namespace MyNUnit
                 methodTester.Invoker = invoker;
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
-                string errorMessage = methodTester.TestMethod(testMethod);
+                var errorMessage = methodTester.TestMethod(testMethod);
                 var elapsed = stopwatch.Elapsed;
                 var elapsedFormatted = $"{TimeSplitter}{elapsed.ToString()}";
                 if (errorMessage == null)
@@ -122,7 +122,7 @@ namespace MyNUnit
                 }
             }
 
-            string afterClassErrorMessage = RunClassTestMethods(type, true);
+            var afterClassErrorMessage = RunClassTestMethods(type, true);
             if (afterClassErrorMessage != null)
             {
                 _failAction(null, afterClassErrorMessage);
@@ -165,7 +165,7 @@ namespace MyNUnit
         }
 
         // Check if testMethod is skippable and return reason message.
-        private string CheckIfSkippableTest(MethodBase testMethod)
+        private static string CheckIfSkippableTest(MethodBase testMethod)
         {
             if (testMethod.IsAbstract)
             {
@@ -176,7 +176,7 @@ namespace MyNUnit
             return testAttribute?.IgnoreWithCause;
         }
 
-        private string RunClassTestMethods(Type type, bool isAfterClass)
+        private static string RunClassTestMethods(Type type, bool isAfterClass)
         {
             var classAttribute = isAfterClass ? typeof(AfterClassAttribute) : typeof(BeforeClassAttribute);
             foreach (var method in GetMethodsWithAttribute(type, classAttribute))

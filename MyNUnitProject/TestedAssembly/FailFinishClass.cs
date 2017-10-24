@@ -1,5 +1,5 @@
 ﻿using System;
-using MyNUnitFramework.Attribute;
+using MyNUnitFramework.Attributes;
 
 namespace TestedAssembly
 {
