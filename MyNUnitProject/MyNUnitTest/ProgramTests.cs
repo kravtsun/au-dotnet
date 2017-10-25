@@ -36,6 +36,10 @@ namespace MyNUnitTest
             Assert.IsTrue(TestedClass2.IsBeforeNonStaticRun);
             Assert.IsFalse(FailStartClass.IsTestRun);
             Assert.IsTrue(FailFinishClass.IsTestRun);
+            Assert.IsFalse(FailBeforeClassNonStaticTestedClass.IsBeforeClassRun);
+            Assert.IsFalse(FailBeforeClassNonStaticTestedClass.IsTestRun);
+            Assert.IsFalse(FailBeforeClassExceptionTestedClass.IsTestRun);
+            Assert.IsTrue(FailAfterClassExceptionTestedClass.IsTestRun);
 
             string[] expectedLogs =
             {   "Testing assembly: MyNUnit",
@@ -44,6 +48,10 @@ namespace MyNUnitTest
                 "Testing assembly: MyNUnitTest",
                 "Testing assembly: NLog",
                 "Testing assembly: TestedAssembly",
+                "SUCCESS: FailAfterClassExceptionTestedClass.Test",
+                "FAILED: FailAfterClassExceptionTestedClass.FailAfterClass with message: failed while AfterClass with message: FailAfterClass",
+                "FAILED: FailBeforeClassExceptionTestedClass.FailBeforeClass with message: failed while BeforeClass with message: FailBeforeClass",
+                "FAILED: FailBeforeClassNonStaticTestedClass.BeforeClass with message: BeforeClass method Void BeforeClass() is non-static",
                 "FAILED: FailFinishClass.Test with message: failed while TearDown with message: FailTearDown",
                 "FAILED: FailStartClass.Test with message: failed while SetUp with message: FailSetUp",
                 "SUCCESS: TestedClass2.SimpleTest",

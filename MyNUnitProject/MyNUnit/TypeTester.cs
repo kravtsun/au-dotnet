@@ -16,22 +16,6 @@ namespace MyNUnit
         private readonly MethodResultCallback _successAction;
         private readonly MethodResultCallback _failAction;
         private readonly MethodResultCallback _skipAction;
-
-        private class MyTraceListener : TraceListener
-        {
-            private readonly Action<string> _messageAction;
-
-            public MyTraceListener(Action<string> messageAction)
-            {
-                _messageAction = messageAction;
-            }
-
-            public override void Fail(string msg) => _messageAction(msg);
-
-            public override void Write(string message) => _messageAction(message);
-
-            public override void WriteLine(string message) => _messageAction(message);
-        }
         
         public TypeTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
         {
@@ -46,10 +30,8 @@ namespace MyNUnit
             var startAction = StartActionForType(type);
             var finishAction = FinishActionForType(type);
             var methodTester = new MethodTester(startAction, finishAction);
-            var beforeClassErrorMessage = RunClassTestMethods(type, false);
-            if (beforeClassErrorMessage != null)
+            if (!RunClassTestMethods(type, false, _failAction))
             {
-                _failAction(null, beforeClassErrorMessage);
                 return;
             }
 
@@ -103,11 +85,7 @@ namespace MyNUnit
                 }
             }
 
-            var afterClassErrorMessage = RunClassTestMethods(type, true);
-            if (afterClassErrorMessage != null)
-            {
-                _failAction(null, afterClassErrorMessage);
-            }
+            RunClassTestMethods(type, true, _failAction);
         }
 
         internal static Action<object> StartActionForType(Type type)
@@ -154,31 +132,41 @@ namespace MyNUnit
             return testAttribute?.IgnoreWithCause;
         }
 
-        private static string RunClassTestMethods(Type type, bool isAfterClass)
+        // returns true if methods' run was successful.
+        private static bool RunClassTestMethods(Type type, bool isAfterClass, MethodResultCallback failAction)
         {
             var classAttribute = isAfterClass ? typeof(AfterClassAttribute) : typeof(BeforeClassAttribute);
+            var methodType = isAfterClass ? "AfterClass" : "BeforeClass";
             foreach (var method in GetMethodsWithAttribute(type, classAttribute))
             {
+                string errorMessage = null;
                 if (!method.IsStatic)
                 {
-                    var methodType = isAfterClass ? "After" : "Before";
-                    return $"{methodType}Class method {method} is non-static";
+                    errorMessage = $"{methodType} method {method} is non-static";
                 }
-                try
+                else
                 {
-                    method.Invoke(null, null);
+                    try
+                    {
+                        method.Invoke(null, null);
+                    }
+                    catch (TargetInvocationException invocationException)
+                    {
+                        var baseException = invocationException.GetBaseException();
+                        errorMessage = MethodTester.MethodFailMessage(methodType, baseException, null);
+                    }
+                    catch (Exception exception)
+                    {
+                        errorMessage = MethodTester.TestingFailMessage(methodType, exception);
+                    }
                 }
-                catch (TargetInvocationException invocationException)
+                if (errorMessage != null)
                 {
-                    var baseException = invocationException.GetBaseException();
-                    return MethodTester.MethodFailMessage("BeforeClass", baseException, null);
-                }
-                catch (Exception exception)
-                {
-                    return MethodTester.TestingFailMessage("BeforeClass", exception);
+                    failAction(method, errorMessage);
+                    return false;
                 }
             }
-            return null;
+            return true;
         }
     }
 }

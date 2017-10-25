@@ -35,6 +35,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FailAfterClassExceptionTestedClass.cs" />
+    <Compile Include="FailBeforeClassExceptionTestedClass.cs" />
+    <Compile Include="FailBeforeClassTestedClass.cs" />
     <Compile Include="FailFinishClass.cs" />
     <Compile Include="FailStartClass.cs" />
     <Compile Include="TestedClass2.cs" />
