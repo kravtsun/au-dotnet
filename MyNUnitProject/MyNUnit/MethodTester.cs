@@ -29,7 +29,7 @@ namespace MyNUnit
             }
             catch (TargetInvocationException invocationException)
             {
-                Exception baseException = invocationException.GetBaseException();
+                var baseException = invocationException.GetBaseException();
                 return MethodFailMessage("SetUp", baseException, null); 
             }
             catch (Exception exception)
@@ -44,7 +44,7 @@ namespace MyNUnit
             catch (TargetInvocationException exception)
             {
                 var catchedException = exception.GetBaseException();
-                Type catchedExceptionType = catchedException.GetType();
+                var catchedExceptionType = catchedException.GetType();
                 if (expectedExceptionType != null && expectedExceptionType.IsAssignableFrom(catchedExceptionType))
                 {
                     return null;
@@ -63,7 +63,7 @@ namespace MyNUnit
             }
             catch (TargetInvocationException invocationException)
             {
-                Exception baseException = invocationException.GetBaseException();
+                var baseException = invocationException.GetBaseException();
                 return MethodFailMessage("TearDown", baseException, null);
             }
             catch (Exception exception)

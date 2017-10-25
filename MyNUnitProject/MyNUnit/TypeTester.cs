@@ -32,19 +32,7 @@ namespace MyNUnit
 
             public override void WriteLine(string message) => _messageAction(message);
         }
-
-        [Serializable]
-        private class DebugAssertException : Exception
-        {
-            public DebugAssertException(string message)
-                : base(message)
-            { }
-
-            protected DebugAssertException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            { }
-        }
-
+        
         public TypeTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
         {
             _successAction = successAction;
@@ -54,13 +42,6 @@ namespace MyNUnit
 
         public void TestType(Type type)
         {
-            var debugAssertListener = new MyTraceListener(msg =>
-            {
-                throw new DebugAssertException($"Debug.Assert: {msg}");
-            });
-            Debug.Listeners.Clear();
-            Debug.Listeners.Add(debugAssertListener);
-
             var testMethods = GetMethodsWithAttribute(type, typeof(TestAttribute));
             var startAction = StartActionForType(type);
             var finishAction = FinishActionForType(type);
@@ -126,10 +107,7 @@ namespace MyNUnit
             if (afterClassErrorMessage != null)
             {
                 _failAction(null, afterClassErrorMessage);
-                return;
             }
-
-            Debug.Listeners.Clear();
         }
 
         internal static Action<object> StartActionForType(Type type)

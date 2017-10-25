@@ -6,7 +6,7 @@ namespace TestedAssembly
 {
     public class TestedClass1
     {
-        public int TestMethodResult { get; } = 42;
+        private int TestMethodResult { get; } = 42;
 
         public bool IsFirstSetUpRun { get; private set; }
 
@@ -62,12 +62,6 @@ namespace TestedAssembly
         public void ExceptionFailTest()
         {
             throw new Exception("ExceptionFailTest");
-        }
-
-        [Test]
-        public void AssertFailTest()
-        {
-            Debug.Assert(false, "FAIL");
         }
 
         [Test(IgnoreWithCause = "Just ignored")]

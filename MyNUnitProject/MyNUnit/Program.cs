@@ -102,7 +102,7 @@ namespace MyNUnit
             {
                 Logger.Error($"Error while loading assembly: {exception.Message}");
             }
-
+            
             return assembly;
         }
 

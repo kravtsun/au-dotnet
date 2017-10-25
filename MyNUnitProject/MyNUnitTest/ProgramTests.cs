@@ -44,7 +44,7 @@ namespace MyNUnitTest
                 "Testing assembly: MyNUnitTest",
                 "Testing assembly: NLog",
                 "Testing assembly: TestedAssembly",
-                "FAILED: FailFinishClass.Test with message: failed while TearDown with message: FailSetUp",
+                "FAILED: FailFinishClass.Test with message: failed while TearDown with message: FailTearDown",
                 "FAILED: FailStartClass.Test with message: failed while SetUp with message: FailSetUp",
                 "SUCCESS: TestedClass2.SimpleTest",
                 "FAILED: TestedClass2.SimpleFailTest with message: failed while running with message: SimpleFailTest",
@@ -52,23 +52,23 @@ namespace MyNUnitTest
                 "SUCCESS: TestedClass1.ExceptionTest",
                 "SUCCESS: TestedClass1.NullReferenceExceptionTest",
                 "FAILED: TestedClass1.ExceptionFailTest with message: failed while running with message: ExceptionFailTest",
-                "FAILED: TestedClass1.AssertFailTest with message: failed while running with message: Debug.Assert: FAIL",
                 "SKIPPED: TestedClass1.IgnoreTest"
             };
-
+            
             var logs = memoryTarget.Logs;
             Assert.AreEqual(expectedLogs.Length, logs.Count);
 
             for (int i = 0; i < logs.Count; ++i)
             {
                 string rawLogMessage = CutTimeStampSuffix(logs[i]);
+                System.Console.WriteLine(rawLogMessage);
                 Assert.AreEqual(expectedLogs[i], rawLogMessage);
             }
         }
 
         private static string CutTimeStampSuffix(string message)
         {
-            var timeSplitter = TypeTester.TimeSplitter;
+            const string timeSplitter = TypeTester.TimeSplitter;
             var timeSplitterStartIndex = message.Length - timeSplitter.Length - 1;
             while (timeSplitterStartIndex >= 0)
             {

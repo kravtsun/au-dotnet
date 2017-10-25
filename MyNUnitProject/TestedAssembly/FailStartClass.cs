@@ -3,7 +3,6 @@ using MyNUnitFramework.Attributes;
 
 namespace TestedAssembly
 {
-    [Test]
     public class FailStartClass
     {
         public static bool IsTestRun { get; private set; }

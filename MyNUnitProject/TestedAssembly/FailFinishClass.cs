@@ -3,7 +3,6 @@ using MyNUnitFramework.Attributes;
 
 namespace TestedAssembly
 {
-    [Test]
     public class FailFinishClass
     {
         public static bool IsTestRun { get; private set; }
@@ -11,7 +10,7 @@ namespace TestedAssembly
         [After]
         public void FailFinish()
         {
-            throw new Exception("FailSetUp");
+            throw new Exception("FailTearDown");
         }
 
         [Test]
