@@ -40,10 +40,6 @@ namespace MyNUnit
             {
                 var catchedException = exception.GetBaseException();
                 var catchedExceptionType = catchedException.GetType();
-                if (expectedExceptionType != null && expectedExceptionType.IsAssignableFrom(catchedExceptionType))
-                {
-                    return TestingMethodResult.Success(method);
-                }
 
                 if (expectedExceptionType == null)
                 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MyNUnit;
 using NLog;
@@ -8,13 +9,14 @@ using TestedAssembly;
 
 namespace MyNUnitTest
 {
+
     [TestClass]
     public class ProgramTests
     {
         [TestMethod]
         public void MainTest()
         {
-            string[] args = {AppDomain.CurrentDomain.BaseDirectory};
+            string[] args = {"."};
 
             var clientConsoleTarget = LogManager.Configuration.FindTargetByName<ConsoleTarget>("client_console");
 
@@ -43,16 +45,15 @@ namespace MyNUnitTest
 
             string[] expectedLogs =
             {   "Testing assembly: MyNUnit",
+                "Bad assembly: .\\NonAssemblyCPP.exe",
                 "Testing assembly: Microsoft.VisualStudio.QualityTools.UnitTestFramework",
                 "Testing assembly: MyNUnitFramework",
                 "Testing assembly: MyNUnitTest",
                 "Testing assembly: NLog",
                 "Testing assembly: TestedAssembly",
                 "SUCCESS: FailAfterClassExceptionTestedClass.Test",
-
                 "FAILED: FailAfterClassExceptionTestedClass.FailAfterClass[AfterClass]: throws Exception with message: FailAfterClass",
                 "FAILED: FailBeforeClassExceptionTestedClass.FailBeforeClass[BeforeClass]: throws Exception with message: FailBeforeClass",
-
                 "FAILED: FailBeforeClassNonStaticTestedClass.BeforeClass[BeforeClass]: non-static",
                 "FAILED: FailFinishClass.Test[After]: throws Exception with message: FailTearDown",
                 "FAILED: FailStartClass.Test[Before]: throws Exception with message: FailSetUp",
@@ -71,6 +72,7 @@ namespace MyNUnitTest
             for (int i = 0; i < logs.Count; ++i)
             {
                 string rawLogMessage = CutTimeStampSuffix(logs[i]);
+                //Console.WriteLine(rawLogMessage);
                 Assert.AreEqual(expectedLogs[i], rawLogMessage);
             }
         }

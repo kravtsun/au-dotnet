@@ -78,7 +78,7 @@ namespace MyNUnit
             }
             catch (Exception exception)
             {
-                Logger.Error($"Error while loading assembly: {exception.Message}");
+                Logger.Error($"Error while loading assembly: {exception.Message} to domain: {currentDomain}");
             }
             
             return assembly;

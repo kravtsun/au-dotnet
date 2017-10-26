@@ -119,7 +119,7 @@ namespace MyNUnitTest
             _invoker = null;
             _methodTester.Invoker = null;
             var simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
-            var testResult = _methodTester.TestMethod(simpleMethod);
+            _methodTester.TestMethod(simpleMethod);
         }
 
         private void TestStateCorrectCleanup()
