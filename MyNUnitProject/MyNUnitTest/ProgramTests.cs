@@ -49,34 +49,35 @@ namespace MyNUnitTest
                 "Testing assembly: NLog",
                 "Testing assembly: TestedAssembly",
                 "SUCCESS: FailAfterClassExceptionTestedClass.Test",
-                "FAILED: FailAfterClassExceptionTestedClass.FailAfterClass with message: failed while AfterClass with message: FailAfterClass",
-                "FAILED: FailBeforeClassExceptionTestedClass.FailBeforeClass with message: failed while BeforeClass with message: FailBeforeClass",
-                "FAILED: FailBeforeClassNonStaticTestedClass.BeforeClass with message: BeforeClass method Void BeforeClass() is non-static",
-                "FAILED: FailFinishClass.Test with message: failed while TearDown with message: FailTearDown",
-                "FAILED: FailStartClass.Test with message: failed while SetUp with message: FailSetUp",
+
+                "FAILED: FailAfterClassExceptionTestedClass.FailAfterClass[AfterClass]: throws Exception with message: FailAfterClass",
+                "FAILED: FailBeforeClassExceptionTestedClass.FailBeforeClass[BeforeClass]: throws Exception with message: FailBeforeClass",
+
+                "FAILED: FailBeforeClassNonStaticTestedClass.BeforeClass[BeforeClass]: non-static",
+                "FAILED: FailFinishClass.Test[After]: throws Exception with message: FailTearDown",
+                "FAILED: FailStartClass.Test[Before]: throws Exception with message: FailSetUp",
                 "SUCCESS: TestedClass2.SimpleTest",
-                "FAILED: TestedClass2.SimpleFailTest with message: failed while running with message: SimpleFailTest",
+                "FAILED: TestedClass2.SimpleFailTest[Running]: throws Exception with message: SimpleFailTest",
                 "SUCCESS: TestedClass1.SimpleTest",
                 "SUCCESS: TestedClass1.ExceptionTest",
                 "SUCCESS: TestedClass1.NullReferenceExceptionTest",
-                "FAILED: TestedClass1.ExceptionFailTest with message: failed while running with message: ExceptionFailTest",
+                "FAILED: TestedClass1.ExceptionFailTest[Running]: throws Exception with message: ExceptionFailTest",
                 "SKIPPED: TestedClass1.IgnoreTest"
             };
             
             var logs = memoryTarget.Logs;
-            Assert.AreEqual(expectedLogs.Length, logs.Count);
 
+            Assert.AreEqual(expectedLogs.Length, logs.Count);
             for (int i = 0; i < logs.Count; ++i)
             {
                 string rawLogMessage = CutTimeStampSuffix(logs[i]);
-                System.Console.WriteLine(rawLogMessage);
                 Assert.AreEqual(expectedLogs[i], rawLogMessage);
             }
         }
 
         private static string CutTimeStampSuffix(string message)
         {
-            const string timeSplitter = TypeTester.TimeSplitter;
+            const string timeSplitter = TestingMethodResult.TimeSplitter;
             var timeSplitterStartIndex = message.Length - timeSplitter.Length - 1;
             while (timeSplitterStartIndex >= 0)
             {

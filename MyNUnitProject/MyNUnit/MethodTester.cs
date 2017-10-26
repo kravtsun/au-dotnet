@@ -18,8 +18,7 @@ namespace MyNUnit
 
         internal Action<object> SetUp { private get; set; }
 
-        // returns error message or null in case of success.
-        internal string TestMethod(MethodInfo method)
+        internal TestingMethodResult TestMethod(MethodInfo method)
         {
             var testAttribute = method.GetCustomAttribute(typeof(TestAttribute)) as TestAttribute;
             var expectedExceptionType = testAttribute?.Expected;
@@ -30,11 +29,7 @@ namespace MyNUnit
             catch (TargetInvocationException invocationException)
             {
                 var baseException = invocationException.GetBaseException();
-                return MethodFailMessage("SetUp", baseException, null); 
-            }
-            catch (Exception exception)
-            {
-                return TestingFailMessage("SetUp", exception);
+                return TestingMethodResult.BeforeFailure(method, baseException);
             }
 
             try
@@ -47,14 +42,18 @@ namespace MyNUnit
                 var catchedExceptionType = catchedException.GetType();
                 if (expectedExceptionType != null && expectedExceptionType.IsAssignableFrom(catchedExceptionType))
                 {
-                    return null;
+                    return TestingMethodResult.Success(method);
                 }
 
-                return MethodFailMessage("running", catchedException, expectedExceptionType);
-            }
-            catch (Exception exception)
-            {
-                return TestingFailMessage("running", exception);
+                if (expectedExceptionType == null)
+                {
+                    return TestingMethodResult.MethodExceptionFailure(method, catchedException);
+                }
+                if (expectedExceptionType.IsAssignableFrom(catchedExceptionType))
+                {
+                    return TestingMethodResult.Success(method);
+                }
+                return TestingMethodResult.MethodExpectedExceptionFailure(method, catchedException, expectedExceptionType);
             }
 
             try
@@ -64,26 +63,17 @@ namespace MyNUnit
             catch (TargetInvocationException invocationException)
             {
                 var baseException = invocationException.GetBaseException();
-                return MethodFailMessage("TearDown", baseException, null);
-            }
-            catch (Exception exception)
-            {
-                return TestingFailMessage("TearDown", exception);
+                return TestingMethodResult.AfterFailure(method, baseException);
             }
 
-            return null;
+            return TestingMethodResult.Success(method);
         }
 
-        internal static string MethodFailMessage(string phase, Exception exception, Type expectedException)
-        {
-            return expectedException == null
-                ? $"failed while {phase} with message: {exception.Message}"
-                : $"failed while {phase} with exception: {exception} when expected exception: {expectedException}";
-        }
-
-        internal static string TestingFailMessage(string phase, Exception exception)
-        {
-            return $"Testing failed in {phase} with error: {exception.Message}";
-        }
+        //internal static string MethodFailMessage(string phase, Exception exception, Type expectedException)
+        //{
+        //    return expectedException == null
+        //        ? $"failed while {phase} with message: {exception.Message}"
+        //        : $"failed while {phase} with exception: {exception} when expected exception: {expectedException}";
+        //}
     }
 }

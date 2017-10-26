@@ -11,31 +11,6 @@ namespace MyNUnit
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static readonly Func<MethodInfo, string> PrettyMethodName = method =>
-        {
-            return method == null ? "null" : $"{method.ReflectedType?.Name}.{method.Name}";
-        };
-
-        private static readonly Action<MethodInfo, string> SuccessAction = (method, message) =>
-        {
-            var methodName = PrettyMethodName(method);
-            var clientMessage = $"SUCCESS: {methodName}" + message;
-            Logger.Info(clientMessage);
-        };
-
-        private static readonly Action<MethodInfo, string> FailAction = (method, message) =>
-        {
-            var methodName = PrettyMethodName(method);
-            var clientMessage = $"FAILED: {methodName} with message: {message}";
-            Logger.Info(clientMessage);
-        };
-
-        private static readonly Action<MethodInfo, string> SkipAction = (method, message) =>
-        {
-            var methodName = PrettyMethodName(method);
-            Logger.Info($"SKIPPED: {methodName}");
-        };
-
         public static void Main(string[] args)
         {
             if (args.Length != 1)
@@ -59,7 +34,10 @@ namespace MyNUnit
                     continue;
                 }
 
-                var typeTester = new TypeTester(SuccessAction, FailAction, SkipAction);
+                var typeTester = new TypeTester(testMethodResult =>
+                {
+                    Logger.Info(testMethodResult.Message);
+                });
 
                 foreach (var type in assembly.GetExportedTypes())
                 {

@@ -35,7 +35,7 @@ namespace MyNUnitTest
             Assert.AreEqual(-6, TestClass.Field);
         }
 
-        public class TestClass
+        private class TestClass
         {
             public static int Field { get; set; }
 

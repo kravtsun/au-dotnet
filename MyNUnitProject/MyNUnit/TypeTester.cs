@@ -3,25 +3,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using MyNUnitFramework.Attributes;   
 
-using MethodResultCallback = System.Action<System.Reflection.MethodInfo, string>;
+using MethodResultCallback = System.Action<MyNUnit.TestingMethodResult>;
 
 namespace MyNUnit
 {
     internal class TypeTester
     {
-        internal const string TimeSplitter = "### time: ";
-        private readonly MethodResultCallback _successAction;
-        private readonly MethodResultCallback _failAction;
-        private readonly MethodResultCallback _skipAction;
+        private readonly MethodResultCallback _reportAction;
         
-        public TypeTester(MethodResultCallback successAction, MethodResultCallback failAction, MethodResultCallback skipAction)
+        public TypeTester(MethodResultCallback reportAction)
         {
-            _successAction = successAction;
-            _failAction = failAction;
-            _skipAction = skipAction;
+            _reportAction = reportAction;
         }
 
         public void TestType(Type type)
@@ -30,7 +24,7 @@ namespace MyNUnit
             var startAction = StartActionForType(type);
             var finishAction = FinishActionForType(type);
             var methodTester = new MethodTester(startAction, finishAction);
-            if (!RunClassTestMethods(type, false, _failAction))
+            if (!RunClassTestMethods(type, false))
             {
                 return;
             }
@@ -48,16 +42,14 @@ namespace MyNUnit
                         var ctr = type.GetConstructor(Type.EmptyTypes);
                         if (ctr == null)
                         {
-                            _failAction(null,
-                                $"type {type} has to have default constructor as there are non-static test methods.");
+                            _reportAction(TestingMethodResult.BeforeFailure(testMethod, "no default constructor"));
                             continue;
                         }
                         invoker = ctr.Invoke(null);
                     }
-                    catch (Exception exception)
+                    catch (TargetInvocationException exception)
                     {
-                        _failAction(null,
-                            $"failed to initialize an object of type {type} with default constructor resulting in {exception}");
+                        _reportAction(TestingMethodResult.BeforeFailure(testMethod, $"failed to initialize an object of type {type} with default constructor resulting in {exception}"));
                         continue;
                     }
                 }
@@ -65,27 +57,19 @@ namespace MyNUnit
                 var skipMessage = CheckIfSkippableTest(testMethod);
                 if (skipMessage != null)
                 {
-                    _skipAction(testMethod, skipMessage);
+                    _reportAction(TestingMethodResult.Skip(testMethod));
                     continue;
                 }
 
                 methodTester.Invoker = invoker;
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
-                var errorMessage = methodTester.TestMethod(testMethod);
-                var elapsed = stopwatch.Elapsed;
-                var elapsedFormatted = $"{TimeSplitter}{elapsed.ToString()}";
-                if (errorMessage == null)
-                {
-                    _successAction(testMethod, $"{elapsedFormatted}");
-                }
-                else
-                {
-                    _failAction(testMethod, $"{errorMessage}{elapsedFormatted}");
-                }
+                var testMethodResult = methodTester.TestMethod(testMethod);
+                testMethodResult.Elapsed = stopwatch.Elapsed;
+                _reportAction(testMethodResult);
             }
 
-            RunClassTestMethods(type, true, _failAction);
+            RunClassTestMethods(type, true);
         }
 
         internal static Action<object> StartActionForType(Type type)
@@ -133,36 +117,29 @@ namespace MyNUnit
         }
 
         // returns true if methods' run was successful.
-        private static bool RunClassTestMethods(Type type, bool isAfterClass, MethodResultCallback failAction)
+        private bool RunClassTestMethods(Type type, bool isAfterClass)
         {
             var classAttribute = isAfterClass ? typeof(AfterClassAttribute) : typeof(BeforeClassAttribute);
-            var methodType = isAfterClass ? "AfterClass" : "BeforeClass";
             foreach (var method in GetMethodsWithAttribute(type, classAttribute))
             {
-                string errorMessage = null;
                 if (!method.IsStatic)
                 {
-                    errorMessage = $"{methodType} method {method} is non-static";
+                    const string errorMessage = "non-static";
+                    _reportAction(isAfterClass
+                        ? TestingMethodResult.AfterClassFailure(method, errorMessage)
+                        : TestingMethodResult.BeforeClassFailure(method, errorMessage));
+                    return false;
                 }
-                else
+                try
                 {
-                    try
-                    {
-                        method.Invoke(null, null);
-                    }
-                    catch (TargetInvocationException invocationException)
-                    {
-                        var baseException = invocationException.GetBaseException();
-                        errorMessage = MethodTester.MethodFailMessage(methodType, baseException, null);
-                    }
-                    catch (Exception exception)
-                    {
-                        errorMessage = MethodTester.TestingFailMessage(methodType, exception);
-                    }
+                    method.Invoke(null, null);
                 }
-                if (errorMessage != null)
+                catch (TargetInvocationException invocationException)
                 {
-                    failAction(method, errorMessage);
+                    var baseException = invocationException.GetBaseException();
+                    _reportAction(isAfterClass
+                        ? TestingMethodResult.AfterClassFailure(method, baseException)
+                        : TestingMethodResult.BeforeClassFailure(method, baseException));
                     return false;
                 }
             }

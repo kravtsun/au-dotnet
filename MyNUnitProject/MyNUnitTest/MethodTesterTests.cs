@@ -43,9 +43,9 @@ namespace MyNUnitTest
         public void SimpleTestMethod_IsTestedSuccessfullyWithTestContracts()
         {
             TestStateCorrectCleanup();
-            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
-            string testResult = _methodTester.TestMethod(simpleMethod);
-            Assert.IsNull(testResult);
+            var simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+            var testResult = _methodTester.TestMethod(simpleMethod);
+            Assert.IsTrue(testResult.IsSuccess());
             TestStartAndFinishAreCalled();
         }
 
@@ -53,9 +53,9 @@ namespace MyNUnitTest
         public void ExceptionThrowingTest_IsTestedWithExceptionMessageReturned()
         {
             TestStateCorrectCleanup();
-            MethodInfo exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("ExceptionFailTest");
-            string testResult = _methodTester.TestMethod(exceptionThrowingMethod);
-            Assert.IsTrue(testResult.Contains("ExceptionFailTest"));
+            var exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("ExceptionFailTest");
+            var testResult = _methodTester.TestMethod(exceptionThrowingMethod);
+            Assert.IsTrue(testResult.Message.Contains("ExceptionFailTest"));
             TestStartOnlyCalled();
         }
 
@@ -63,9 +63,9 @@ namespace MyNUnitTest
         public void ExceptionExpectingTest_IsTestedWithSuccess()
         {
             TestStateCorrectCleanup();
-            MethodInfo exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("ExceptionTest");
-            string testResult = _methodTester.TestMethod(exceptionThrowingMethod);
-            Assert.IsNull(testResult);
+            var exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("ExceptionTest");
+            var testResult = _methodTester.TestMethod(exceptionThrowingMethod);
+            Assert.IsTrue(testResult.IsSuccess());
             TestStartOnlyCalled();
         }
 
@@ -73,9 +73,9 @@ namespace MyNUnitTest
         public void NullReferenceExceptionExpectingTest_IsTestedWithSuccess()
         {
             TestStateCorrectCleanup();
-            MethodInfo exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("NullReferenceExceptionTest");
-            string testResult = _methodTester.TestMethod(exceptionThrowingMethod);
-            Assert.IsNull(testResult);
+            var exceptionThrowingMethod = _testedClass1Info.GetDeclaredMethod("NullReferenceExceptionTest");
+            var testResult = _methodTester.TestMethod(exceptionThrowingMethod);
+            Assert.IsTrue(testResult.IsSuccess());
             TestStartOnlyCalled();
         }
 
@@ -86,13 +86,13 @@ namespace MyNUnitTest
             Action<object> newStartAction = obj =>
             {
                 _startAction(obj);
-                throw new Exception(exceptionMessage);
+                throw new TargetInvocationException(new Exception(exceptionMessage));
             };
             _methodTester.SetUp = newStartAction;
-            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+            var simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
 
             var testResult = _methodTester.TestMethod(simpleMethod);
-            Assert.IsTrue(testResult.Contains(exceptionMessage));
+            Assert.IsTrue(testResult.Message.Contains(exceptionMessage));
             TestStartOnlyCalled();
         }
 
@@ -102,25 +102,24 @@ namespace MyNUnitTest
             const string exceptionMessage = "TearDownException";
             Action<object> newFinishAction = obj =>
             {
-                _startAction(obj);
-                throw new Exception(exceptionMessage);
+                throw new TargetInvocationException(new Exception(exceptionMessage));
             };
             _methodTester.TearDown = newFinishAction;
-            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+            var simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
 
             var testResult = _methodTester.TestMethod(simpleMethod);
-            Assert.IsTrue(testResult.Contains(exceptionMessage));
+            Assert.IsTrue(testResult.Message.Contains(exceptionMessage));
             TestStartOnlyCalled();
         }
 
         [TestMethod]
+        [ExpectedException(typeof(TargetException))]
         public void TestingNonStaticMethodFailsIfNoObject()
         {
             _invoker = null;
             _methodTester.Invoker = null;
-            MethodInfo simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
+            var simpleMethod = _testedClass1Info.GetDeclaredMethod("SimpleTest");
             var testResult = _methodTester.TestMethod(simpleMethod);
-            Assert.IsTrue(testResult.Contains("Non-static method requires a target."));
         }
 
         private void TestStateCorrectCleanup()

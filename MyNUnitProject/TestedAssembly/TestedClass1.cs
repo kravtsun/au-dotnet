@@ -69,7 +69,7 @@ namespace TestedAssembly
             IsIgnoredRun = false;
         }
 
-        public void CleanTest()
+        private void CleanTest()
         {
             IsFirstSetUpRun = false;
             IsSecondSetUpRun = false;
