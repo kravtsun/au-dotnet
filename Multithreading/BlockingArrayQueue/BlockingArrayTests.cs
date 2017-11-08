@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BLockingArrayQueue;
@@ -11,42 +8,42 @@ namespace BlockingArrayQueue
 {
     abstract class BlockingArrayAbstractTest
     {
-        private IBlockingArrayQueue<int> queue;
+        private IBlockingArrayQueue<int> _queue;
 
         private int _acc;
         private const int Limit = 10000;
-        private const long Sum = Limit * (Limit - 1) / 2;
+        private const int Sum = Limit * (Limit - 1) / 2;
 
         private const int Repeat = 10;
-        private bool sequential;
-        private volatile bool settersFinished;
+        private bool _sequential;
+        private volatile bool _settersFinished;
 
         private void SetRunner()
         {
             int next;
             while ((next = Interlocked.Increment(ref _acc)) < Limit)
             {
-                queue.Enqueue(next);
+                _queue.Enqueue(next);
             }
         }
 
-        private long GetRunner()
+        private int GetRunner()
         {
-            long sum = 0;
-            long prev = 0;
+            int sum = 0;
+            int prev = 0;
             while (true)
             {
                 int currentValue;
-                if (queue.TryDequeue(out currentValue))
+                if (_queue.TryDequeue(out currentValue))
                 {
-                    if (sequential)
+                    if (_sequential)
                     {
                         Assert.Less(prev, currentValue);
                     }
                     sum += currentValue;
                     prev = currentValue;
                 }
-                else if (settersFinished)
+                else if (_settersFinished)
                 {
                     break;
                 }
@@ -59,15 +56,15 @@ namespace BlockingArrayQueue
         {
             Task[] tasks = new Task[count];
             for (int i = 0; i < count; i++) tasks[i] = Task.Factory.StartNew(SetRunner, TaskCreationOptions.LongRunning);
-            new TaskFactory().ContinueWhenAll(tasks, _ => settersFinished = true);
+            new TaskFactory().ContinueWhenAll(tasks, _ => _settersFinished = true);
         }
 
-        private long RunGettersAndWait(int count)
+        private int RunGettersAndWait(int count)
         {
-            var tasks = new Task<long>[count];
+            var tasks = new Task<int>[count];
             for (int i = 0; i < count; i++) tasks[i] = Task.Factory.StartNew(GetRunner, TaskCreationOptions.LongRunning);
 
-            return tasks.Aggregate(0L, (sum, task) => sum + task.Result);
+            return tasks.Aggregate(0, (sum, task) => sum + task.Result);
         }
 
 
@@ -77,21 +74,21 @@ namespace BlockingArrayQueue
         public void SetUp()
         {
             _acc = 0;
-            sequential = true;
-            settersFinished = false;
-            queue = CreateQueue();
+            _sequential = true;
+            _settersFinished = false;
+            _queue = CreateQueue();
         }
 
         [Test]
         public void TestOneThread()
         {
-            queue.Enqueue(1);
-            queue.Enqueue(2);
+            _queue.Enqueue(1);
+            _queue.Enqueue(2);
 
             int result;
-            Assert.True(queue.TryDequeue(out result) && result == 1);
-            Assert.True(queue.TryDequeue(out result) && result == 2);
-            Assert.False(queue.TryDequeue(out result));
+            Assert.True(_queue.TryDequeue(out result) && result == 1);
+            Assert.True(_queue.TryDequeue(out result) && result == 2);
+            Assert.False(_queue.TryDequeue(out result));
         }
 
 
@@ -112,7 +109,7 @@ namespace BlockingArrayQueue
         [Test, Repeat(Repeat)]
         public void TestSeveralSettersAndSeveralGetters()
         {
-            sequential = false;
+            _sequential = false;
             RunSetters(3);
             Assert.AreEqual(Sum, RunGettersAndWait(3));
         }
@@ -120,13 +117,13 @@ namespace BlockingArrayQueue
         [Test, Repeat(Repeat)]
         public void TestManySettersAndManyGetters()
         {
-            sequential = false;
+            _sequential = false;
             RunSetters(10);
             Assert.AreEqual(Sum, RunGettersAndWait(10));
         }
     }
 
-    class LockedBlockingArrayQueueTests : BlockingArrayAbstractTest
+    internal class LockedBlockingArrayQueueTests : BlockingArrayAbstractTest
     {
         protected override IBlockingArrayQueue<int> CreateQueue()
         {
@@ -134,11 +131,11 @@ namespace BlockingArrayQueue
         }
     }
 
-    class LockFreeBlockingArrayQueueTests : BlockingArrayAbstractTest
+    internal class LockFreeBlockingArrayQueueTests : BlockingArrayAbstractTest
     {
         protected override IBlockingArrayQueue<int> CreateQueue()
         {
-            return new LockFreeBlockingArrayQueue<int>();;
+            return new LockFreeBlockingArrayQueue<int>();
         }
     }
 }
