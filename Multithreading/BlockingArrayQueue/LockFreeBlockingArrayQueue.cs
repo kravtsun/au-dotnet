@@ -10,13 +10,16 @@ namespace BLockingArrayQueue
         public override bool TryEnqueue(T v)
         {
             var newNode = new Node(v, null, true);
-            var currentTail = _headTail.Tail;
-            var next = currentTail.NextNode;
-            if (next != null)
+            while (true)
             {
-                return Interlocked.CompareExchange(ref _headTail.Tail, next, currentTail) == currentTail;
+                var currentTail = _headTail.Tail;
+                var next = currentTail.NextNode;
+                if (next != null)
+                {
+                    Interlocked.CompareExchange(ref _headTail.Tail, next, currentTail);
+                }
+                return null == Interlocked.CompareExchange(ref _headTail.Tail.NextNode, newNode, null);
             }
-            return null == Interlocked.CompareExchange(ref _headTail.Tail.NextNode, newNode, null);
         }
 
         public override bool TryDequeue(out T res)
