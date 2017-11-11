@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PrimesApp.Properties;
 
 namespace PrimesApp
 {
@@ -30,15 +26,15 @@ namespace PrimesApp
             get { return _state; }
             set
             {
-                taskInGUI(() => stateLabel.Text = $"{value}");
+                RunTaskInGui(() => stateLabel.Text = value.ToString());
                 _state = value;
             }
         }
 
-        private void taskInGUI(Action action)
+        private static void RunTaskInGui(Action action)
         {
-            //action();
-            new Task(action, TaskCreationOptions.PreferFairness).Start(_guiTaskScheduler);
+            action();
+            //new Task(action, TaskCreationOptions.PreferFairness).Start(_guiTaskScheduler);
         }
 
         public TaskView(int x)
@@ -54,10 +50,12 @@ namespace PrimesApp
                 cancelSource.Cancel();
             };
 
+            var progressBarUpdateStep = x / 100 + 1;
             Action<int> iterAction = i =>
             {
                 cancelSource.Token.ThrowIfCancellationRequested();
-                taskInGUI(() => progressBar.Value = i);
+                if (i % progressBarUpdateStep == 0)
+                RunTaskInGui(() => progressBar.Value = i);
             };
 
             var preCalculationTask = new Task(() =>
@@ -89,7 +87,7 @@ namespace PrimesApp
                 layoutPanel.Controls.Remove(cancelButton);
 
                 var resultLabel = new Label {
-                    Text = $"Result: {t.Result}",
+                    Text = string.Format(Resources.result_string_prefix, t.Result),
                     TextAlign = ContentAlignment.MiddleCenter,
                     Anchor = AnchorStyles.Top | AnchorStyles.Bottom
                              | AnchorStyles.Left
@@ -110,8 +108,7 @@ namespace PrimesApp
 
             var isPrime = Enumerable.Repeat(true, x + 1).ToArray();
             isPrime[0] = isPrime[1] = false;
-
-            // TODO: check than forms accepts only int numbers.
+            
             for (int i = 2; i <= x; ++i)
             {
                 if (isPrime[i])
