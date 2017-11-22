@@ -42,17 +42,20 @@
     <Compile Include="Player.cs" />
     <Compile Include="Map.Point.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Program.EventLoop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="big_map_example.txt" />
     <Content Include="map_example.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /y /a $(ProjectDir)map_example.txt $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>copy /y /a $(ProjectDir)map_example.txt $(TargetDir)
+copy /y /a $(ProjectDir)big_map_example.txt $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

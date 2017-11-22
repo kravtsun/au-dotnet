@@ -1,104 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 
 namespace MiniRoguelike
 {
-    public static class Program
+    public partial class Program
     {
-        private delegate void MoveHandler(int dx, int dy);
-
-        private delegate void EventHandler();
-
-        private class EventLoop : IDisposable
-        {
-            private event MoveHandler MovePressed;
-            private event EventHandler UnknownPressed;
-            private readonly List<MoveHandler> _moveHandlers;
-            private readonly List<ConsoleCancelEventHandler> _cancelEventHandlers;
-            private readonly List<EventHandler> _unknownEventHandlers;
-
-            public EventLoop()
-            {
-                _moveHandlers = new List<MoveHandler>();
-                _cancelEventHandlers = new List<ConsoleCancelEventHandler>();
-                _unknownEventHandlers = new List<EventHandler>();
-            }
-
-            public void Run()
-            {
-                Debug.Assert(MovePressed != null, nameof(MovePressed) + " != null");
-                Debug.Assert(UnknownPressed != null, nameof(UnknownPressed) + " != null");
-
-                do
-                {
-                    while (!Console.KeyAvailable)
-                    {
-                        Thread.Yield();
-                    }
-                    var key = Console.ReadKey(true);
-                    switch (key.Key)
-                    {
-                        case ConsoleKey.UpArrow:
-                            MovePressed.Invoke(0, -1);
-                            break;
-                        case ConsoleKey.DownArrow:
-                            MovePressed.Invoke(0, +1);
-                            break;
-                        case ConsoleKey.LeftArrow:
-                            MovePressed.Invoke(-1, 0);
-                            break;
-                        case ConsoleKey.RightArrow:
-                            MovePressed.Invoke(+1, 0);
-                            break;
-                        case ConsoleKey.Escape:
-                            return;
-                        default:
-                            UnknownPressed.Invoke();
-                            break;
-                    }
-                } while (true);
-            }
-
-            public void RegisterMove(MoveHandler handler)
-            {
-                _moveHandlers.Add(handler);
-                MovePressed += handler;
-            }
-
-            public void RegisterExit(EventHandler handler)// => Console.CancelKeyPress += handler;
-            {
-                _cancelEventHandlers.Add(delegate
-                {
-                    handler.Invoke();
-                });
-                Console.CancelKeyPress += _cancelEventHandlers.Last();
-            }
-
-            public void RegisterUnknown(EventHandler handler)
-            {
-                _unknownEventHandlers.Add(handler);
-                UnknownPressed += handler;
-            }
-
-            public void Dispose()
-            {
-                foreach (var moveHandler in _moveHandlers)
-                {
-                    MovePressed -= moveHandler;
-                }
-                foreach (var eventHandler in _unknownEventHandlers)
-                {
-                    UnknownPressed -= eventHandler;
-                }
-                foreach (var cancelEventHandler in _cancelEventHandlers)
-                {
-                    Console.CancelKeyPress -= cancelEventHandler;
-                }
-            }
-        }
+        private readonly Player _player;
+        private readonly Map _map;
 
         public static void Main(string[] args)
         {
@@ -114,7 +21,7 @@ namespace MiniRoguelike
             Map map;
             try
             {
-                map = Map.LoadFile(mapFilename);
+                map = new UpdateableMap(mapFilename);
             }
             catch (Exception e)
             {
@@ -122,29 +29,46 @@ namespace MiniRoguelike
                 return;
             }
 
-            var playerCoordinates = map.GetPlayerCoordinates();
+            var program = new Program(map);
+            program.MainLoop();
+        }
 
-            if (playerCoordinates.IsInvalid())
+        private Program(Map map)
+        {
+            _map = map;
+            try
             {
-                Console.WriteLine("Invalid map: nowhere to place the player");
-            }
+                var playerCoordinates = map.GetPlayerCoordinates();
 
-            var player = new Player(map, playerCoordinates);
+                if (playerCoordinates.IsInvalid())
+                {
+                    Console.Error.WriteLine("Invalid map: nowhere to place the player");
+                    return;
+                }
+                _player = new Player(map, playerCoordinates);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to create player, exception: {e.Message}");
+            }
+        }
+
+        private void MainLoop()
+        {
             using (var eventLoop = new EventLoop())
             {
                 eventLoop.RegisterMove(
-                    delegate(int dx, int dy)
+                    delegate (int dx, int dy)
                     {
-                        player.Walk(dx, dy);
-                        // TODO fix the whole map redrawing.
-                        DrawMap(map);
+                        _player.Walk(dx, dy);
+                        _map.Draw();
                     }
                 );
 
                 eventLoop.RegisterUnknown(
                     delegate
                     {
-                        Console.Write("Unknown key pressed. Use arrows or press Esc to exit. \n");
+                        WriteShortMessage("Unknown key pressed. Use arrows or press Esc to exit.");
                     }
                 );
 
@@ -155,24 +79,26 @@ namespace MiniRoguelike
                     }
                 );
 
-                DrawMap(map);
-
+                _map.Draw();
                 eventLoop.Run();
             }
         }
 
-        private static void DrawMap(Map map)
+        private void WriteShortMessage(string message)
         {
-            Console.Clear();
-            Console.CursorVisible = false;
-            for (var y = 0; y < map.Height; ++y)
-            {
-                for (var x = 0; x < map.Width; ++x)
-                {
-                    Console.Write(map.GetCell(x, y).ToString());
-                }
-                Console.WriteLine();
-            }
+            var cursorX = Console.CursorLeft;
+            var cursorY = Console.CursorTop;
+            var messagePosition = new Map.Point(_map.Width + 1, _map.Height / 2);
+            // clear line.
+            Console.SetCursorPosition(messagePosition.X, messagePosition.Y);
+            Console.WriteLine();
+
+            // write message.
+            Console.SetCursorPosition(messagePosition.X, messagePosition.Y);
+            Console.Write(message);
+
+            Console.CursorLeft = cursorX;
+            Console.CursorTop = cursorY;
         }
     }
 }

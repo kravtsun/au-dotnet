@@ -3,28 +3,25 @@
     internal class Player
     {
         private readonly Map _map;
-        private Map.Point _position;
+        public Map.Point Position { get; private set; }
 
         public Player(Map map, Map.Point position)
         {
             _map = map;
-            _position = position;
+            Position = position;
         }
 
         public void Walk(int dx, int dy)
         {
-            var newPosition = new Map.Point(_position.X + dx, _position.Y + dy);
+            var newPosition = new Map.Point(Position.X + dx, Position.Y + dy);
             newPosition = TruncatePoint(newPosition);
-            if (!_map.GetCell(newPosition.X, newPosition.Y).IsFree())
+            if (!_map.IsFreeCell(newPosition))
             {
                 return;
             }
 
-            var oldCell = _map.GetCell(_position.X, _position.Y);
-            var newCell = _map.GetCell(newPosition.X, newPosition.Y);
-            _map.SetCell(_position.X, _position.Y, newCell);
-            _map.SetCell(newPosition.X, newPosition.Y, oldCell);
-            _position = newPosition;
+            _map.SwapCells(Position, newPosition);
+            Position = newPosition;
         }
 
         private Map.Point TruncatePoint(Map.Point point)
