@@ -29,7 +29,16 @@ namespace MiniRoguelike
                 return;
             }
 
-            var program = new Program(map);
+            Program program;
+            try
+            {
+                program = new Program(map);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Error while creating context: {e.Message}");
+                return;
+            }
             program.MainLoop();
         }
 
@@ -49,12 +58,13 @@ namespace MiniRoguelike
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Failed to create player, exception: {e.Message}");
+                throw new Exception($"Failed to create player, exception: {e.Message}");
             }
         }
 
         private void MainLoop()
         {
+            Random randomGenerator = new Random();
             using (var eventLoop = new EventLoop())
             {
                 eventLoop.RegisterMove(
@@ -62,6 +72,45 @@ namespace MiniRoguelike
                     {
                         _player.Walk(dx, dy);
                         _map.Draw();
+                        var random = randomGenerator.Next(100);
+                        string message;
+                        switch (random)
+                        {
+                            case 0:
+                                message = "You're doing well!";
+                                break;
+                            case 1:
+                                message = "You're awesome!";
+                                break;
+                            case 2:
+                                message = "Spectacular!";
+                                break;
+                            case 3:
+                                message = "Fantastic!";
+                                break;
+                            case 4:
+                                message = "Great!";
+                                break;
+                            case 5:
+                                message = "Well done!";
+                                break;
+                            case 6:
+                                message = "Keep going and be brave!";
+                                break;
+                            case 7:
+                                message = "Interesting...";
+                                break;
+                            case 8:
+                                message = "Nothing can stop you!";
+                                break;
+                            case 9:
+                                message = "What a lovely day!";
+                                break;
+                            default:
+                                message = "";
+                                break;
+                        }
+                        WriteShortMessage(message);
                     }
                 );
 
@@ -75,7 +124,7 @@ namespace MiniRoguelike
                 eventLoop.RegisterExit(
                     delegate
                     {
-                        Environment.Exit(0);
+                        eventLoop.Finish = true;
                     }
                 );
 
@@ -88,10 +137,10 @@ namespace MiniRoguelike
         {
             var cursorX = Console.CursorLeft;
             var cursorY = Console.CursorTop;
-            var messagePosition = new Map.Point(_map.Width + 1, _map.Height / 2);
+            var messagePosition = new Point(0, Console.WindowHeight - 2);
             // clear line.
             Console.SetCursorPosition(messagePosition.X, messagePosition.Y);
-            Console.WriteLine();
+            Console.Write(new string(' ', Console.WindowWidth - 1));
 
             // write message.
             Console.SetCursorPosition(messagePosition.X, messagePosition.Y);

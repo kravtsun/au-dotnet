@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,8 @@ namespace MiniRoguelike
     internal partial class Map
     {
         private Cell[,] Cells { get; }
+        protected int LeftBase { get; set; }
+        protected int TopBase { get; set; }
 
         public int Width => Cells.GetLength(1);
 
@@ -45,6 +46,10 @@ namespace MiniRoguelike
                 {
                     var cell = new Cell(line[x]);
                     Cells[y, x] = cell;
+                    if (cell.IsCharacter())
+                    {
+                        SetFocus(new Point(x, y));
+                    }
                 }
             }
         }
@@ -92,78 +97,60 @@ namespace MiniRoguelike
             return sb.ToString();
         }
 
+        public void SetFocus(Point position)
+        {
+            LeftBase = OptimalBase(LeftBase, Width, ConsoleWidth(), position.X);
+            TopBase = OptimalBase(TopBase, Height, ConsoleHeight(), position.Y);
+        }
+
+        private static int OptimalBase(int currentBase, int mapDimension, int windowDimension, int focusPosition)
+        {
+            if (mapDimension <= windowDimension)
+            {
+                return 0;
+            }
+            const int padding = 1;
+            if (focusPosition - padding < currentBase)
+            {
+                return Math.Max(0, focusPosition - padding);
+            }
+
+            if (focusPosition + padding >= currentBase + windowDimension)
+            {
+                return Math.Min(mapDimension - windowDimension, focusPosition + padding - windowDimension + 1);
+            }
+            return currentBase;
+        }
+        
         public virtual void Draw()
         {
             Console.Clear();
             Console.CursorVisible = false;
-            for (var y = 0; y < Height; ++y)
+            Console.CursorLeft = 0;
+            Console.CursorTop = 0;
+
+            var heightLimit = Math.Min(Height - TopBase, ConsoleHeight());
+            var widthLimit = Math.Min(Width - LeftBase, ConsoleWidth());
+            Console.SetBufferSize(Width, Height);
+            for (var y = 0; y < heightLimit; ++y)
             {
-                for (var x = 0; x < Width; ++x)
+                var lineBuilder = new StringBuilder(Width);
+                for (var x = 0; x < widthLimit; ++x)
                 {
-                    var p = new Point(x, y);
-                    Console.Write(GetCell(p).ToString());
+                    lineBuilder.Append(Cells[TopBase + y, LeftBase + x]);
                 }
-                Console.WriteLine();
-            }
-        }
-    }
-
-    class UpdateableMap : Map
-    {
-        private bool _drawn;
-        private List<CellChange> _cellChanges;
-
-        public UpdateableMap(string filename) : base(filename)
-        {
-            _cellChanges = new List<CellChange>();
-        }
-
-        public override void Draw()
-        {
-            if (!_drawn)
-            {
-                base.Draw();
-                _drawn = true;
-            }
-            foreach (var cellChange in _cellChanges)
-            {
-                var position = cellChange.Position;
-                var cell = cellChange.NewCell;
-                base.SetCell(position, cell);
-                DrawCell(position, cell);
+                Console.WriteLine(lineBuilder);
             }
         }
 
-        protected override void SetCell(Point position, Cell cell)
+        private static int ConsoleWidth()
         {
-            if (_drawn)
-            {
-                _cellChanges.Add(new CellChange(position, cell));
-            }
-            else
-            {
-                base.SetCell(position, cell);
-            }
+            return Console.WindowWidth - 1;
         }
 
-        private void DrawCell(Point position, Cell cell)
+        private static int ConsoleHeight()
         {
-            var cursorPosition = new Point(Console.CursorLeft, Console.CursorTop);
-            Console.SetCursorPosition(position.X, position.Y);
-            Console.Write(cell.ToString());
-            Console.SetCursorPosition(cursorPosition.X, cursorPosition.Y);
-        }
-
-        private struct CellChange
-        {
-            public Point Position { get; }
-            public Cell NewCell { get; }
-
-            public CellChange(Point position, Cell newCell)
-            {
-                Position = position;
-                NewCell = newCell;
-            }
+            return Console.WindowHeight - 2;
         }
     }
 }

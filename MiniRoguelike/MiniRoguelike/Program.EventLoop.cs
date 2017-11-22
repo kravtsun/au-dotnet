@@ -14,11 +14,14 @@ namespace MiniRoguelike
 
         private class EventLoop : IDisposable
         {
+            public bool Finish { private get; set; }
+
             private event MoveHandler MovePressed;
             private event EventHandler UnknownPressed;
             private readonly List<MoveHandler> _moveHandlers;
             private readonly List<ConsoleCancelEventHandler> _cancelEventHandlers;
             private readonly List<EventHandler> _unknownEventHandlers;
+            
 
             public EventLoop()
             {
@@ -32,7 +35,7 @@ namespace MiniRoguelike
                 Debug.Assert(MovePressed != null, nameof(MovePressed) + " != null");
                 Debug.Assert(UnknownPressed != null, nameof(UnknownPressed) + " != null");
 
-                do
+                while (!Finish)
                 {
                     while (!Console.KeyAvailable)
                     {
@@ -54,12 +57,13 @@ namespace MiniRoguelike
                             MovePressed.Invoke(+1, 0);
                             break;
                         case ConsoleKey.Escape:
-                            return;
+                            Finish = true;
+                            break;
                         default:
                             UnknownPressed.Invoke();
                             break;
                     }
-                } while (true);
+                }
             }
 
             public void RegisterMove(MoveHandler handler)
@@ -68,7 +72,7 @@ namespace MiniRoguelike
                 MovePressed += handler;
             }
 
-            public void RegisterExit(EventHandler handler)// => Console.CancelKeyPress += handler;
+            public void RegisterExit(EventHandler handler)
             {
                 _cancelEventHandlers.Add(delegate
                 {
