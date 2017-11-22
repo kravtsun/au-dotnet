@@ -11,20 +11,14 @@
             _position = position;
         }
 
-        public void MoveLeft() => Walk(-1, 0);
-
-        public void MoveRight() => Walk(1, 0);
-
-        public void MoveUp() => Walk(0, -1);
-
-        public void MoveDown() => Walk(0, 1);
-
-        private void Walk(int dx, int dy)
+        public void Walk(int dx, int dy)
         {
             var newPosition = new Map.Point(_position.X + dx, _position.Y + dy);
             newPosition = TruncatePoint(newPosition);
             if (!_map.GetCell(newPosition.X, newPosition.Y).IsFree())
+            {
                 return;
+            }
 
             var oldCell = _map.GetCell(_position.X, _position.Y);
             var newCell = _map.GetCell(newPosition.X, newPosition.Y);
