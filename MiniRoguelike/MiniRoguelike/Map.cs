@@ -8,8 +8,8 @@ namespace MiniRoguelike
     internal partial class Map
     {
         private Cell[,] Cells { get; }
-        protected int LeftBase { get; set; }
-        protected int TopBase { get; set; }
+        protected int LeftBase { get; private set; }
+        protected int TopBase { get; private set; }
 
         public int Width => Cells.GetLength(1);
 
@@ -21,26 +21,36 @@ namespace MiniRoguelike
             var fileReader = new StreamReader(fileStream);
             var dimensionsLine = fileReader.ReadLine();
             if (dimensionsLine == null)
+            {
                 throw new IOException("dimensions line");
+            }
             var dimensionsList = dimensionsLine.Split(' ').Select(int.Parse).ToList();
             if (dimensionsList.Count != 2)
+            {
                 throw new IOException("map dimensions read error");
+            }
 
             var width = dimensionsList[0];
             var height = dimensionsList[1];
 
             if (width <= 0)
+            {
                 throw new IOException("map width read error");
+            }
 
             if (height <= 0)
+            {
                 throw new IOException("map height read error");
+            }
 
             Cells = new Cell[height, width];
             for (var y = 0; y < height; ++y)
             {
                 var line = fileReader.ReadLine();
                 if (line == null || line.Length != width)
+                {
                     throw new IOException($"map error read in line: {y + 2}");
+                }
 
                 for (var x = 0; x < width; ++x)
                 {
@@ -62,9 +72,13 @@ namespace MiniRoguelike
         {
             var playersCount = Cells.Cast<Cell>().Count(cell => cell.IsCharacter());
             if (playersCount == 0)
+            {
                 throw new Exception("Invalid map: no players");
+            }
             if (playersCount > 1)
+            {
                 throw new Exception("Invalid map: too many players");
+            }
 
             for (var y = 0; y < Height; ++y)
             {
@@ -131,7 +145,6 @@ namespace MiniRoguelike
 
             var heightLimit = Math.Min(Height - TopBase, ConsoleHeight());
             var widthLimit = Math.Min(Width - LeftBase, ConsoleWidth());
-            Console.SetBufferSize(Width, Height);
             for (var y = 0; y < heightLimit; ++y)
             {
                 var lineBuilder = new StringBuilder(Width);

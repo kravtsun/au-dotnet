@@ -64,7 +64,7 @@ namespace MiniRoguelike
 
         private void MainLoop()
         {
-            Random randomGenerator = new Random();
+            var randomGenerator = new Random();
             using (var eventLoop = new EventLoop())
             {
                 eventLoop.RegisterMove(
@@ -129,11 +129,12 @@ namespace MiniRoguelike
                 );
 
                 _map.Draw();
+
                 eventLoop.Run();
             }
         }
 
-        private void WriteShortMessage(string message)
+        private static void WriteShortMessage(string message)
         {
             var cursorX = Console.CursorLeft;
             var cursorY = Console.CursorTop;

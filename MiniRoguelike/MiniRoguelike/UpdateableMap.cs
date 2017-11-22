@@ -8,13 +8,19 @@ namespace MiniRoguelike
         private readonly List<CellChange> _cellChanges;
         private int _drawnLeftBase;
         private int _drawnTopBase;
-        private bool IsUpToDate => _drawnLeftBase == LeftBase && _drawnTopBase == TopBase;
+        private int _drawnWidth;
+        private int _drawnHeight;
+
+        private bool IsUpToDate => _drawnLeftBase == LeftBase && _drawnTopBase == TopBase &&
+                                   _drawnWidth == Console.WindowWidth && _drawnHeight == Console.WindowHeight;
 
         public UpdateableMap(string filename) : base(filename)
         {
             _cellChanges = new List<CellChange>();
             _drawnLeftBase = -1;
             _drawnTopBase = -1;
+            _drawnWidth = -1;
+            _drawnHeight = -1;
         }
 
         public override void Draw()
@@ -31,6 +37,8 @@ namespace MiniRoguelike
                 base.Draw();
                 _drawnLeftBase = LeftBase;
                 _drawnTopBase = TopBase;
+                _drawnWidth = Console.WindowWidth;
+                _drawnHeight = Console.WindowHeight;
             }
             _cellChanges.Clear();
         }
