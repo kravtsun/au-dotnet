@@ -1,6 +1,6 @@
 ﻿namespace PrimesApp
 {
-    partial class Form1
+    partial class MainWindow
     {
         /// <summary>
         /// Required designer variable.
@@ -112,13 +112,13 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(973, 44);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
-            // Form1
+            // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1015, 680);
             this.Controls.Add(this.allLayoutPanel);
-            this.Name = "Form1";
+            this.Name = "MainWindow";
             this.Text = "Простые числа";
             ((System.ComponentModel.ISupportInitialize)(this.numberInput)).EndInit();
             this.allLayoutPanel.ResumeLayout(false);
