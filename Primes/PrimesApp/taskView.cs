@@ -10,7 +10,7 @@ namespace PrimesApp
 {
     public sealed partial class TaskView : UserControl
     {
-        private static readonly TaskScheduler GuiTaskScheduler = 
+        private static readonly TaskScheduler GuiTaskScheduler =
             TaskScheduler.FromCurrentSynchronizationContext();
 
         private readonly int _x;
@@ -55,10 +55,7 @@ namespace PrimesApp
                         throw new ArgumentOutOfRangeException(nameof(status),
                             status, $@"Wrong TaskStatus: {status}");
                 }
-                stateLabel.Invoke(new UpdateFormElementCallback(() =>
-                {
-                    stateLabel.Text = valueString;
-                }));
+                stateLabel.Invoke(new UpdateFormElementCallback(() => { stateLabel.Text = valueString; }));
             });
         }
 
@@ -88,10 +85,7 @@ namespace PrimesApp
                     _cancelSource.Token.ThrowIfCancellationRequested();
                     if (i % progressBarUpdateStep == 0)
                     {
-                        progressBar.Invoke(new UpdateFormElementCallback(() =>
-                        {
-                            progressBar.Value = i;
-                        }));
+                        progressBar.Invoke(new UpdateFormElementCallback(() => { progressBar.Value = i; }));
                     }
                 };
                 UpdateState(TaskStatus.Running);
@@ -150,7 +144,7 @@ namespace PrimesApp
 
         private static void RunTaskInGui(Action action)
         {
-            Task.Factory.StartNew(action, CancellationToken.None, 
+            Task.Factory.StartNew(action, CancellationToken.None,
                 TaskCreationOptions.PreferFairness, GuiTaskScheduler);
         }
 
