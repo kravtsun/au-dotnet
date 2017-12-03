@@ -24,102 +24,12 @@ namespace PrimesApp
             RunTaskInGui(LifeInGui);
         }
 
-        // returns cancellation callback.
-        private Task<EventHandler> InitializeTask()
+        private Task UpdateState(TaskStatus status)
         {
             return Task.Run(() =>
-            {
-                State = TaskStatus.Created;
-                _cancelSource = new CancellationTokenSource();
-                EventHandler cancelButtonCallback = delegate
-                {
-                    State = TaskStatus.Canceled;
-                    _cancelSource.Cancel();
-                };
-                return cancelButtonCallback;
-            });
-        }
-
-        private Task<int> CalculationTask()
-        {
-            return Task.Run(() =>
-            {
-                var progressBarUpdateStep = _x / 100 + 1;
-                Action<int> iterAction = i =>
-                {
-                    _cancelSource.Token.ThrowIfCancellationRequested();
-                    if (i % progressBarUpdateStep == 0)
-                    {
-                        progressBar.Invoke(new UpdateFormElementCallback(() =>
-                        {
-                            progressBar.Value = i;
-                        }));
-                    }
-                };
-                State = TaskStatus.Running;
-                var result = GetNumberOfPrimes(_x, iterAction);
-                State = TaskStatus.RanToCompletion;
-                return result;
-            });
-        }
-
-        private async void LifeInGui()
-        {
-            var initializeTask = InitializeTask();
-
-            progressBar.Maximum = _x;
-            progressBar.Visible = true;
-            progressBar.Value = 0;
-
-            var cancellationCallback = await initializeTask;
-            cancelButton.Click += cancellationCallback;
-
-            await Task.Run(() =>
-            {
-                State = TaskStatus.WaitingToRun;
-            });
-
-            try
-            {
-                var result = await CalculationTask();
-                var resultLabel = new Label
-                {
-                    Text = string.Format(Resources.result_string_prefix, result),
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    Anchor = AnchorStyles.Top
-                             | AnchorStyles.Bottom
-                             | AnchorStyles.Left
-                             | AnchorStyles.Right,
-                    AutoSize = true
-                };
-                layoutPanel.Controls.Add(resultLabel);
-            }
-            catch (OperationCanceledException e)
-            {
-                if (e.CancellationToken != _cancelSource.Token)
-                {
-                    throw;
-                }
-                await Task.Run(() =>
-                {
-                    State = TaskStatus.Canceled;
-                });
-            }
-            finally
-            {
-                // TaskView's State should be set appropriately beforehand.
-                progressBar.Visible = false;
-                cancelButton.Visible = false;
-                cancelButton.Click -= cancellationCallback;
-            }
-        }
-
-        private TaskStatus State
-        {
-            set
             {
                 string valueString;
-                switch (value)
+                switch (status)
                 {
                     case TaskStatus.Created:
                         valueString = "Starting...";
@@ -142,13 +52,99 @@ namespace PrimesApp
                         valueString = "Failed";
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(value), 
-                            value, $@"Wrong TaskStatus: {value}");
+                        throw new ArgumentOutOfRangeException(nameof(status),
+                            status, $@"Wrong TaskStatus: {status}");
                 }
                 stateLabel.Invoke(new UpdateFormElementCallback(() =>
                 {
                     stateLabel.Text = valueString;
                 }));
+            });
+        }
+
+        // returns cancellation callback.
+        private Task<EventHandler> InitializeTask()
+        {
+            return Task.Run(() =>
+            {
+                UpdateState(TaskStatus.Created);
+                _cancelSource = new CancellationTokenSource();
+                EventHandler cancelButtonCallback = delegate
+                {
+                    UpdateState(TaskStatus.Canceled);
+                    _cancelSource.Cancel();
+                };
+                return cancelButtonCallback;
+            });
+        }
+
+        private Task<int> CalculationTask()
+        {
+            return Task.Run(() =>
+            {
+                var progressBarUpdateStep = _x / 100 + 1;
+                Action<int> iterAction = i =>
+                {
+                    _cancelSource.Token.ThrowIfCancellationRequested();
+                    if (i % progressBarUpdateStep == 0)
+                    {
+                        progressBar.Invoke(new UpdateFormElementCallback(() =>
+                        {
+                            progressBar.Value = i;
+                        }));
+                    }
+                };
+                UpdateState(TaskStatus.Running);
+                var result = GetNumberOfPrimes(_x, iterAction);
+                UpdateState(TaskStatus.RanToCompletion);
+                return result;
+            });
+        }
+
+        private async void LifeInGui()
+        {
+            var initializeTask = InitializeTask();
+
+            progressBar.Maximum = _x;
+            progressBar.Visible = true;
+            progressBar.Value = 0;
+
+            var cancellationCallback = await initializeTask;
+            cancelButton.Click += cancellationCallback;
+
+            await UpdateState(TaskStatus.WaitingToRun);
+
+            try
+            {
+                var result = await CalculationTask();
+                var resultLabel = new Label
+                {
+                    Text = string.Format(Resources.result_string_prefix, result),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Anchor = AnchorStyles.Top
+                             | AnchorStyles.Bottom
+                             | AnchorStyles.Left
+                             | AnchorStyles.Right,
+                    AutoSize = true
+                };
+                layoutPanel.Controls.Add(resultLabel);
+            }
+            catch (OperationCanceledException e)
+            {
+                if (e.CancellationToken != _cancelSource.Token)
+                {
+                    throw;
+                }
+
+                // No need - already updated within cancellationCallback.
+                // await UpdateState(TaskStatus.Canceled);
+            }
+            finally
+            {
+                // TaskView's State should be set appropriately beforehand.
+                progressBar.Visible = false;
+                cancelButton.Visible = false;
+                cancelButton.Click -= cancellationCallback;
             }
         }
 
@@ -168,7 +164,7 @@ namespace PrimesApp
             var isPrime = Enumerable.Repeat(true, x + 1).ToArray();
             isPrime[0] = isPrime[1] = false;
 
-            // starting from zero in order to allow yieldAction 
+            // starting from zero in order to allow yieldAction
             // interrupt calculation as soon as possible.
             for (var i = 0; i <= x; ++i)
             {
