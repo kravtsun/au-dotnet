@@ -11,7 +11,7 @@ module Fib =
                 if n = 0 then
                     (0, 1)
                 else
-                    let (prev, prevprev) = fibHelper (n - 1)
-                    prevprev, prev + prevprev
+                    let (prevprev, prev) = fibHelper (n - 1)
+                    prev, prevprev + prev
         fst (fibHelper n)
             
