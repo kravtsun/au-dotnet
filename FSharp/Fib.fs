@@ -1,7 +1,5 @@
 ﻿namespace FSharpHW
 
-open System
-
 module Fib =
     let fib n = 
         if n < 0 then
