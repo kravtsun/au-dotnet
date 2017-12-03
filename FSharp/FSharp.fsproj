@@ -51,6 +51,7 @@
     <None Include="App.config" />
     <Compile Include="Fib.fs" />
     <Compile Include="MyList.fs" />
+    <Compile Include="Primes.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <PropertyGroup>
