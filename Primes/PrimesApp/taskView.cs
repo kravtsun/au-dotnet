@@ -139,6 +139,7 @@ namespace PrimesApp
                 progressBar.Visible = false;
                 cancelButton.Visible = false;
                 cancelButton.Click -= cancellationCallback;
+                await Task.Run(() => _cancelSource.Dispose());
             }
         }
 
